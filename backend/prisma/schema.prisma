@@ -1,0 +1,510 @@
+// Attest data model. Source: "Attest: user flows, database ERD and delivery tasks" v0.1, section 2.1.
+// Conventions from the spec: uuid PK on every table, UTC timestamptz, Postgres enums,
+// no hard deletes (corrections are new rows). Rule backstops that Prisma cannot express
+// (CHECKs, triggers, REVOKEs) live in hand-written SQL inside prisma/migrations.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- enums ----------
+
+enum UserRole {
+  adj
+  counsel
+  officer
+  witness
+
+  @@map("user_role")
+}
+
+enum Side {
+  P
+  D
+  T
+
+  @@map("side")
+}
+
+enum AuthMethod {
+  password_mfa
+  smart_card
+
+  @@map("auth_method")
+}
+
+enum Forum {
+  deposition
+  arbitration
+  regulatory
+
+  @@map("forum")
+}
+
+enum RecordState {
+  off
+  open
+  recess
+  closed
+
+  @@map("record_state")
+}
+
+/// Role a user plays in one session. Not enumerated in the spec v0.1; values are a proposal.
+enum SessionRole {
+  presiding
+  panelist
+  counsel
+  witness
+  officer
+  reporter
+
+  @@map("session_role")
+}
+
+enum Verification {
+  pending
+  verified
+  failed
+
+  @@map("verification")
+}
+
+enum Presence {
+  lobby
+  present
+  sidebar
+  caucus
+  absent
+
+  @@map("presence")
+}
+
+enum IdentityMethod {
+  biometric
+  certificate
+  manual
+
+  @@map("identity_method")
+}
+
+enum CheckResult {
+  pass
+  fail
+
+  @@map("check_result")
+}
+
+enum ObjectionRuling {
+  pending
+  sustained
+  overruled
+
+  @@map("objection_ruling")
+}
+
+enum ContinuanceStatus {
+  requested
+  granted
+  denied
+
+  @@map("continuance_status")
+}
+
+enum ExhibitStatus {
+  tagged
+  offered
+  admitted
+  excluded
+
+  @@map("exhibit_status")
+}
+
+enum LineKind {
+  q
+  a
+  colloquy
+  procedural
+
+  @@map("line_kind")
+}
+
+/// errata.kind is not enumerated in the spec v0.1; values are a proposal.
+enum ErratumKind {
+  transcription
+  substantive
+
+  @@map("erratum_kind")
+}
+
+enum ErratumStatus {
+  pending
+  accepted
+  rejected
+
+  @@map("erratum_status")
+}
+
+// ---------- identity ----------
+
+/// Role and side drive every authorization check. Never deleted; deactivated_at instead.
+model User {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  email         String     @unique
+  role          UserRole
+  side          Side
+  authMethod    AuthMethod @map("auth_method")
+  mfaEnrolled   Boolean    @default(false) @map("mfa_enrolled")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  deactivatedAt DateTime?  @map("deactivated_at") @db.Timestamptz
+
+  participations      Participant[]
+  identityChecksDone  IdentityCheck[]       @relation("IdentityCheckVerifiedBy")
+  oathsAdministered   Oath[]                @relation("OathAdministeredBy")
+  objectionsRuled     Objection[]           @relation("ObjectionRuledBy")
+  continuancesRuled   Continuance[]         @relation("ContinuanceRuledBy")
+  caucusRoomsOpened   CaucusRoom[]          @relation("CaucusOpenedBy")
+  exhibitsRuled       Exhibit[]             @relation("ExhibitRuledBy")
+  publications        ExhibitPublication[]
+  errataFiled         Erratum[]             @relation("ErratumFiledBy")
+  errataDecided       Erratum[]             @relation("ErratumDecidedBy")
+  sealsLocked         TranscriptSeal[]
+  exports             CertifiedExport[]
+  votes               Vote[]
+  auditEvents         AuditEvent[]
+
+  @@map("users")
+}
+
+model Matter {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caption  String
+  docketNo String   @unique @map("docket_no")
+  forum    Forum
+  openedAt DateTime @default(now()) @map("opened_at") @db.Timestamptz
+
+  sessions Session[]
+  exhibits Exhibit[]
+
+  @@map("matters")
+}
+
+/// Single source for the on-the-record indicator. Closing is irreversible.
+model Session {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matterId    String      @map("matter_id") @db.Uuid
+  dayNo       Int         @map("day_no")
+  startsAt    DateTime    @map("starts_at") @db.Timestamptz
+  recordState RecordState @default(off) @map("record_state")
+  closedAt    DateTime?   @map("closed_at") @db.Timestamptz
+
+  matter          Matter               @relation(fields: [matterId], references: [id])
+  participants    Participant[]
+  objections      Objection[]
+  continuances    Continuance[]
+  caucusRooms     CaucusRoom[]
+  publications    ExhibitPublication[]
+  transcriptLines TranscriptLine[]
+  errata          Erratum[]
+  seal            TranscriptSeal?
+  votes           Vote[]
+
+  @@unique([matterId, dayNo])
+  @@map("sessions")
+}
+
+/// sworn_seconds is a projection of presence_events and record state (R2).
+model Participant {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId     String       @map("session_id") @db.Uuid
+  userId        String       @map("user_id") @db.Uuid
+  sessionRole   SessionRole  @map("session_role")
+  verification  Verification @default(pending)
+  presence      Presence     @default(lobby)
+  sworn         Boolean      @default(false)
+  swornSeconds  Int          @default(0) @map("sworn_seconds")
+
+  session              Session          @relation(fields: [sessionId], references: [id])
+  user                 User             @relation(fields: [userId], references: [id])
+  identityChecks       IdentityCheck[]
+  oaths                Oath[]
+  presenceEvents       PresenceEvent[]
+  objectionsRaised     Objection[]
+  continuancesRequested Continuance[]
+  transcriptLines      TranscriptLine[]
+
+  @@unique([sessionId, userId])
+  @@map("participants")
+}
+
+/// Max 3 automated attempts. method manual requires verified_by with role officer (R1).
+model IdentityCheck {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  participantId String         @map("participant_id") @db.Uuid
+  method        IdentityMethod
+  result        CheckResult
+  score         Decimal?       @db.Decimal(4, 3)
+  attemptNo     Int            @map("attempt_no")
+  evidenceRef   String?        @map("evidence_ref")
+  verifiedById  String?        @map("verified_by") @db.Uuid
+  at            DateTime       @default(now()) @db.Timestamptz
+
+  participant Participant @relation(fields: [participantId], references: [id])
+  verifiedBy  User?       @relation("IdentityCheckVerifiedBy", fields: [verifiedById], references: [id])
+
+  @@unique([participantId, attemptNo])
+  @@map("identity_checks")
+}
+
+/// Insert rejected unless participant.verification = verified (R1).
+model Oath {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  participantId     String   @map("participant_id") @db.Uuid
+  oathTextVersion   String   @map("oath_text_version")
+  administeredById  String   @map("administered_by") @db.Uuid
+  affirmedAt        DateTime @default(now()) @map("affirmed_at") @db.Timestamptz
+
+  participant    Participant @relation(fields: [participantId], references: [id])
+  administeredBy User        @relation("OathAdministeredBy", fields: [administeredById], references: [id])
+
+  @@map("oaths")
+}
+
+/// Append-only. Accrual counts intervals in present or sidebar while session is open (R2).
+model PresenceEvent {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  participantId String   @map("participant_id") @db.Uuid
+  state         Presence
+  caucusRoomId  String?  @map("caucus_room_id") @db.Uuid
+  at            DateTime @default(now()) @db.Timestamptz
+
+  participant Participant @relation(fields: [participantId], references: [id])
+  caucusRoom  CaucusRoom? @relation(fields: [caucusRoomId], references: [id])
+
+  @@index([participantId, at])
+  @@map("presence_events")
+}
+
+// ---------- live proceeding ----------
+
+/// ruled_by must be the presiding adjudicator.
+model Objection {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId        String          @map("session_id") @db.Uuid
+  raisedById       String          @map("raised_by") @db.Uuid
+  grounds          String
+  transcriptLineId String?         @map("transcript_line_id") @db.Uuid
+  ruling           ObjectionRuling @default(pending)
+  ruledById        String?         @map("ruled_by") @db.Uuid
+  ruledAt          DateTime?       @map("ruled_at") @db.Timestamptz
+
+  session        Session         @relation(fields: [sessionId], references: [id])
+  raisedBy       Participant     @relation(fields: [raisedById], references: [id])
+  transcriptLine TranscriptLine? @relation(fields: [transcriptLineId], references: [id])
+  ruledBy        User?           @relation("ObjectionRuledBy", fields: [ruledById], references: [id])
+
+  @@map("objections")
+}
+
+/// Row exists only when requested; status leaves requested once (R3). Grant sets session to recess.
+model Continuance {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId        String            @map("session_id") @db.Uuid
+  requestedById    String            @map("requested_by") @db.Uuid
+  reason           String
+  proposedResumeAt DateTime?         @map("proposed_resume_at") @db.Timestamptz
+  status           ContinuanceStatus @default(requested)
+  ruledById        String?           @map("ruled_by") @db.Uuid
+  ruledAt          DateTime?         @map("ruled_at") @db.Timestamptz
+
+  session     Session     @relation(fields: [sessionId], references: [id])
+  requestedBy Participant @relation(fields: [requestedById], references: [id])
+  ruledBy     User?       @relation("ContinuanceRuledBy", fields: [ruledById], references: [id])
+
+  @@map("continuances")
+}
+
+/// Media never routed to the record. Membership limited to same side.
+model CaucusRoom {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId  String    @map("session_id") @db.Uuid
+  side       Side
+  openedById String    @map("opened_by") @db.Uuid
+  openedAt   DateTime  @default(now()) @map("opened_at") @db.Timestamptz
+  closedAt   DateTime? @map("closed_at") @db.Timestamptz
+
+  session        Session         @relation(fields: [sessionId], references: [id])
+  openedBy       User            @relation("CaucusOpenedBy", fields: [openedById], references: [id])
+  presenceEvents PresenceEvent[]
+
+  @@map("caucus_rooms")
+}
+
+/// Unique (session_id, seq). Read-only once the seal is locked.
+model TranscriptLine {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  seq       Int
+  speakerId String?  @map("speaker_id") @db.Uuid
+  kind      LineKind
+  text      String
+  at        DateTime @default(now()) @db.Timestamptz
+
+  session    Session      @relation(fields: [sessionId], references: [id])
+  speaker    Participant? @relation(fields: [speakerId], references: [id])
+  objections Objection[]
+  errata     Erratum[]
+
+  @@unique([sessionId, seq])
+  @@map("transcript_lines")
+}
+
+// ---------- exhibits ----------
+
+/// Unique (matter_id, label). Rows with status tagged are filtered from the opposing side at query level (R7).
+model Exhibit {
+  id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matterId  String        @map("matter_id") @db.Uuid
+  label     String
+  title     String
+  pages     Int
+  side      Side
+  status    ExhibitStatus @default(tagged)
+  fileRef   String        @map("file_ref")
+  offeredAt DateTime?     @map("offered_at") @db.Timestamptz
+  ruledById String?       @map("ruled_by") @db.Uuid
+  ruledAt   DateTime?     @map("ruled_at") @db.Timestamptz
+
+  matter       Matter               @relation(fields: [matterId], references: [id])
+  ruledBy      User?                @relation("ExhibitRuledBy", fields: [ruledById], references: [id])
+  publications ExhibitPublication[]
+
+  @@unique([matterId, label])
+  @@map("exhibits")
+}
+
+/// Insert requires exhibit.status = admitted. At most one open publication per session.
+model ExhibitPublication {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  exhibitId     String    @map("exhibit_id") @db.Uuid
+  sessionId     String    @map("session_id") @db.Uuid
+  publishedById String    @map("published_by") @db.Uuid
+  startedAt     DateTime  @default(now()) @map("started_at") @db.Timestamptz
+  endedAt       DateTime? @map("ended_at") @db.Timestamptz
+
+  exhibit     Exhibit @relation(fields: [exhibitId], references: [id])
+  session     Session @relation(fields: [sessionId], references: [id])
+  publishedBy User    @relation(fields: [publishedById], references: [id])
+
+  @@map("exhibit_publications")
+}
+
+// ---------- deliberation ----------
+
+/// Unique (session_id, panelist_id). Panelist role must be adj. Decryption only when sealed count equals panel size (R6).
+model Vote {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId  String    @map("session_id") @db.Uuid
+  panelistId String    @map("panelist_id") @db.Uuid
+  ciphertext Bytes
+  sealedAt   DateTime? @map("sealed_at") @db.Timestamptz
+
+  session  Session @relation(fields: [sessionId], references: [id])
+  panelist User    @relation(fields: [panelistId], references: [id])
+
+  @@unique([sessionId, panelistId])
+  @@map("votes")
+}
+
+// ---------- record integrity ----------
+
+/// Window closes at deadline or when all rows are decided.
+model Erratum {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId        String        @map("session_id") @db.Uuid
+  transcriptLineId String        @map("transcript_line_id") @db.Uuid
+  original         String
+  corrected        String
+  filedById        String        @map("filed_by") @db.Uuid
+  kind             ErratumKind
+  status           ErratumStatus @default(pending)
+  decidedById      String?       @map("decided_by") @db.Uuid
+
+  session        Session        @relation(fields: [sessionId], references: [id])
+  transcriptLine TranscriptLine @relation(fields: [transcriptLineId], references: [id])
+  filedBy        User           @relation("ErratumFiledBy", fields: [filedById], references: [id])
+  decidedBy      User?          @relation("ErratumDecidedBy", fields: [decidedById], references: [id])
+
+  @@map("errata")
+}
+
+/// locked_at requires errata_closed_at not null (R4). Digest over canonical transcript plus accepted errata.
+model TranscriptSeal {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId      String    @unique @map("session_id") @db.Uuid
+  /// Addition to spec v0.1: when the errata window closes on its own (set when the session closes).
+  errataDeadline DateTime  @map("errata_deadline") @db.Timestamptz
+  errataClosedAt DateTime? @map("errata_closed_at") @db.Timestamptz
+  digestSha256   String?   @map("digest_sha256")
+  signature      Bytes?
+  tsaToken       Bytes?    @map("tsa_token")
+  lockedById     String?   @map("locked_by") @db.Uuid
+  lockedAt       DateTime? @map("locked_at") @db.Timestamptz
+
+  session  Session           @relation(fields: [sessionId], references: [id])
+  lockedBy User?             @relation(fields: [lockedById], references: [id])
+  exports  CertifiedExport[]
+
+  @@map("transcript_seals")
+}
+
+/// Insert requires seal.locked_at not null (R5).
+model CertifiedExport {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sealId         String   @map("seal_id") @db.Uuid
+  fileRef        String   @map("file_ref")
+  manifestSha256 String   @map("manifest_sha256")
+  exportedById   String   @map("exported_by") @db.Uuid
+  exportedAt     DateTime @default(now()) @map("exported_at") @db.Timestamptz
+
+  seal       TranscriptSeal @relation(fields: [sealId], references: [id])
+  exportedBy User           @relation(fields: [exportedById], references: [id])
+
+  @@map("certified_exports")
+}
+
+// ---------- audit ----------
+
+/// Append-only, written in the same transaction as the change (R8).
+/// visibility_side hides tagged-exhibit events from the opposing side.
+/// seq and data are additions to the spec v0.1: seq orders the hash chain, data holds
+/// the action's non-sensitive details and is covered by the hash.
+model AuditEvent {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seq            BigInt   @unique @default(autoincrement())
+  at             DateTime @default(now()) @db.Timestamptz
+  matterId       String?  @map("matter_id") @db.Uuid
+  sessionId      String?  @map("session_id") @db.Uuid
+  actorId        String?  @map("actor_id") @db.Uuid
+  entity         String
+  entityId       String?  @map("entity_id") @db.Uuid
+  action         String
+  visibilitySide Side?    @map("visibility_side")
+  data           Json?
+  prevHash       String?  @map("prev_hash")
+  hash           String   @unique
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([sessionId, seq])
+  @@index([matterId, seq])
+  @@map("audit_events")
+}

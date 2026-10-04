@@ -1,0 +1,31 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Local configuration and secrets (each app keeps a committed .env.example)
+backend/.env
+*.local
+
+# Generated at install time (backend postinstall runs prisma generate)
+backend/src/generated/
+
+# Exhibit uploads and certified exports from local development
+backend/storage/
+
+# Personal editor and assistant settings
+.claude/settings.local.json
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log
+
+# TypeScript incremental build caches
+*.tsbuildinfo
+
+# AI-assistant skill docs installed by `prisma init` (links with absolute paths; reinstallable)
+backend/.agents/
+backend/.claude/
+backend/.windsurf/
+backend/skills-lock.json

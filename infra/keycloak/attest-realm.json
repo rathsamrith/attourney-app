@@ -1,0 +1,165 @@
+{
+  "realm": "attest",
+  "enabled": true,
+  "displayName": "Attest",
+  "sslRequired": "external",
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "accessTokenLifespan": 300,
+  "clients": [
+    {
+      "clientId": "attest-web",
+      "name": "Attest web app",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "attest-api audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "attest-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "ruth.okafor",
+      "email": "ruth.okafor@attest.local",
+      "firstName": "Ruth",
+      "lastName": "Okafor",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "wei.chen",
+      "email": "wei.chen@attest.local",
+      "firstName": "Wei",
+      "lastName": "Chen",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "h.albrecht",
+      "email": "h.albrecht@attest.local",
+      "firstName": "Hanna",
+      "lastName": "Albrecht",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "maya.lindqvist",
+      "email": "maya.lindqvist@attest.local",
+      "firstName": "Maya",
+      "lastName": "Lindqvist",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "daniel.osei",
+      "email": "daniel.osei@attest.local",
+      "firstName": "Daniel",
+      "lastName": "Osei",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sokha.prum",
+      "email": "sokha.prum@attest.local",
+      "firstName": "Sokha",
+      "lastName": "Prum",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "jordan.reyes",
+      "email": "jordan.reyes@attest.local",
+      "firstName": "Jordan",
+      "lastName": "Reyes",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "dara.kim",
+      "email": "dara.kim@attest.local",
+      "firstName": "Dara",
+      "lastName": "Kim",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "attest",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

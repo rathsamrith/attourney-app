@@ -1,0 +1,3001 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "healthCheck",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/sessions/{id}/notifications": {
+      "get": {
+        "operationId": "notificationsList",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/audit": {
+      "get": {
+        "operationId": "auditList",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 100,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/api/me": {
+      "get": {
+        "operationId": "authMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/signed-in": {
+      "post": {
+        "operationId": "authSignedIn",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/signed-out": {
+      "post": {
+        "operationId": "authSignedOut",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/sessions": {
+      "get": {
+        "operationId": "sessionsList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionSummaryDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sessions"
+        ]
+      }
+    },
+    "/api/sessions/{id}": {
+      "get": {
+        "operationId": "sessionsGet",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionDetailDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sessions"
+        ]
+      }
+    },
+    "/api/sessions/{id}/record-state": {
+      "post": {
+        "operationId": "sessionsSetRecordState",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetRecordStateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "409": {
+            "description": "Blocked, with the reason to show the user"
+          }
+        },
+        "tags": [
+          "Sessions"
+        ]
+      }
+    },
+    "/api/participants/{id}/presence": {
+      "post": {
+        "operationId": "sessionsSetPresence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPresenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Sessions"
+        ]
+      }
+    },
+    "/api/sessions/{id}/checkin": {
+      "get": {
+        "operationId": "checkinStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckinStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Checkin"
+        ]
+      }
+    },
+    "/api/sessions/{id}/checkin/identity": {
+      "post": {
+        "operationId": "checkinIdentity",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentityAttemptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Checkin"
+        ]
+      }
+    },
+    "/api/sessions/{id}/checkin/oath": {
+      "post": {
+        "operationId": "checkinOath",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Checkin"
+        ]
+      }
+    },
+    "/api/sessions/{id}/checkin/queue": {
+      "get": {
+        "operationId": "checkinQueue",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckinQueueDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Checkin"
+        ]
+      }
+    },
+    "/api/participants/{id}/manual-verification": {
+      "post": {
+        "operationId": "checkinManual",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualVerificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Checkin"
+        ]
+      }
+    },
+    "/api/participants/{id}/admit": {
+      "post": {
+        "operationId": "checkinAdmit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Checkin"
+        ]
+      }
+    },
+    "/api/sessions/{id}/objections": {
+      "get": {
+        "operationId": "proceedingListObjections",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObjectionDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      },
+      "post": {
+        "operationId": "proceedingRaiseObjection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RaiseObjectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/objections/{id}/ruling": {
+      "post": {
+        "operationId": "proceedingRuleObjection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleObjectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/sessions/{id}/continuances": {
+      "get": {
+        "operationId": "proceedingListContinuances",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContinuanceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      },
+      "post": {
+        "operationId": "proceedingRequestContinuance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestContinuanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/continuances/{id}/ruling": {
+      "post": {
+        "operationId": "proceedingRuleContinuance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleContinuanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/sessions/{id}/caucus": {
+      "get": {
+        "operationId": "proceedingListCaucus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CaucusRoomDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      },
+      "post": {
+        "operationId": "proceedingOpenCaucus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/caucus/{id}/join": {
+      "post": {
+        "operationId": "proceedingJoinCaucus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/caucus/{id}/leave": {
+      "post": {
+        "operationId": "proceedingLeaveCaucus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/caucus/{id}/close": {
+      "post": {
+        "operationId": "proceedingCloseCaucus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/sessions/{id}/transcript": {
+      "get": {
+        "operationId": "proceedingListTranscript",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TranscriptLineDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      },
+      "post": {
+        "operationId": "proceedingAddLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTranscriptLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/transcript-lines/{id}": {
+      "patch": {
+        "operationId": "proceedingCorrectLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectTranscriptLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/sessions/{id}/media-token": {
+      "post": {
+        "operationId": "proceedingMediaToken",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaTokenRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaTokenDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Proceeding"
+        ]
+      }
+    },
+    "/api/sessions/{id}/exhibits": {
+      "get": {
+        "operationId": "exhibitsList",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExhibitDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/exhibits": {
+      "post": {
+        "operationId": "exhibitsTag",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sessionId",
+                  "title",
+                  "file"
+                ],
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/exhibits/{id}/file": {
+      "get": {
+        "operationId": "exhibitsFile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/exhibits/{id}/offer": {
+      "post": {
+        "operationId": "exhibitsOffer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishExhibitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/exhibits/{id}/ruling": {
+      "post": {
+        "operationId": "exhibitsRule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleExhibitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/exhibits/{id}/publish": {
+      "post": {
+        "operationId": "exhibitsPublish",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishExhibitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/sessions/{id}/publication": {
+      "get": {
+        "operationId": "exhibitsCurrent",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPublicationDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/sessions/{id}/publication/end": {
+      "post": {
+        "operationId": "exhibitsUnpublish",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Exhibits"
+        ]
+      }
+    },
+    "/api/sessions/{id}/deliberation": {
+      "get": {
+        "operationId": "deliberationState",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliberationDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Deliberation"
+        ]
+      }
+    },
+    "/api/sessions/{id}/ballot": {
+      "post": {
+        "operationId": "deliberationCast",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CastBallotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Deliberation"
+        ]
+      }
+    },
+    "/api/sessions/{id}/ballot/seal": {
+      "post": {
+        "operationId": "deliberationSeal",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Deliberation"
+        ]
+      }
+    },
+    "/api/sessions/{id}/record": {
+      "get": {
+        "operationId": "recordStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordStatusDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/sessions/{id}/errata": {
+      "post": {
+        "operationId": "recordFile",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileErratumDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/errata/{id}/decision": {
+      "post": {
+        "operationId": "recordDecide",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideErratumDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/sessions/{id}/errata/close": {
+      "post": {
+        "operationId": "recordCloseWindow",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/sessions/{id}/seal/lock": {
+      "post": {
+        "operationId": "recordLock",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/sessions/{id}/exports": {
+      "post": {
+        "operationId": "recordExport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/exports/{id}/file": {
+      "get": {
+        "operationId": "recordDownload",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Record"
+        ]
+      }
+    },
+    "/api/docket": {
+      "get": {
+        "operationId": "docketWeek",
+        "parameters": [
+          {
+            "name": "weekOf",
+            "required": false,
+            "in": "query",
+            "description": "Any date in the week; defaults to today. Weeks start on Monday.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocketWeekDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Docket"
+        ]
+      }
+    },
+    "/api/docket/metrics": {
+      "get": {
+        "operationId": "docketMetrics",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetricDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Docket"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Attest API",
+    "description": "",
+    "version": "0.1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "seq": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "actorName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "action",
+          "actorName"
+        ]
+      },
+      "AuditEntryDto": {
+        "type": "object",
+        "properties": {
+          "seq": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "entity": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sessionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "actorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "hash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "seq",
+          "at",
+          "action",
+          "entity",
+          "entityId",
+          "sessionId",
+          "actorName",
+          "hash"
+        ]
+      },
+      "ScreenAccessDto": {
+        "type": "object",
+        "properties": {
+          "screen": {
+            "type": "string",
+            "enum": [
+              "checkin",
+              "hearing",
+              "exhibits",
+              "caucus",
+              "deliberation",
+              "sealing",
+              "docket",
+              "audit"
+            ]
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "screen",
+          "allowed",
+          "reason"
+        ]
+      },
+      "MeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "adj",
+              "counsel",
+              "officer",
+              "witness"
+            ]
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          },
+          "screens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScreenAccessDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "side",
+          "screens"
+        ]
+      },
+      "SessionSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "matterId": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "docketNo": {
+            "type": "string"
+          },
+          "forum": {
+            "type": "string",
+            "enum": [
+              "deposition",
+              "arbitration",
+              "regulatory"
+            ]
+          },
+          "dayNo": {
+            "type": "number"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "recordState": {
+            "type": "string",
+            "enum": [
+              "off",
+              "open",
+              "recess",
+              "closed"
+            ]
+          },
+          "mySessionRole": {
+            "type": "string",
+            "enum": [
+              "presiding",
+              "panelist",
+              "counsel",
+              "witness",
+              "officer",
+              "reporter"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "matterId",
+          "caption",
+          "docketNo",
+          "forum",
+          "dayNo",
+          "startsAt",
+          "recordState",
+          "mySessionRole"
+        ]
+      },
+      "ParticipantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "adj",
+              "counsel",
+              "officer",
+              "witness"
+            ]
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          },
+          "sessionRole": {
+            "type": "string",
+            "enum": [
+              "presiding",
+              "panelist",
+              "counsel",
+              "witness",
+              "officer",
+              "reporter"
+            ]
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verified",
+              "failed"
+            ]
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "lobby",
+              "present",
+              "sidebar",
+              "caucus",
+              "absent"
+            ]
+          },
+          "sworn": {
+            "type": "boolean"
+          },
+          "swornSeconds": {
+            "type": "number",
+            "description": "Computed by the server from presence and record events (R2)."
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "name",
+          "role",
+          "side",
+          "sessionRole",
+          "verification",
+          "presence",
+          "sworn",
+          "swornSeconds"
+        ]
+      },
+      "SessionDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "matterId": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "docketNo": {
+            "type": "string"
+          },
+          "forum": {
+            "type": "string",
+            "enum": [
+              "deposition",
+              "arbitration",
+              "regulatory"
+            ]
+          },
+          "dayNo": {
+            "type": "number"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "recordState": {
+            "type": "string",
+            "enum": [
+              "off",
+              "open",
+              "recess",
+              "closed"
+            ]
+          },
+          "mySessionRole": {
+            "type": "string",
+            "enum": [
+              "presiding",
+              "panelist",
+              "counsel",
+              "witness",
+              "officer",
+              "reporter"
+            ]
+          },
+          "myParticipantId": {
+            "type": "string"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParticipantDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "matterId",
+          "caption",
+          "docketNo",
+          "forum",
+          "dayNo",
+          "startsAt",
+          "recordState",
+          "mySessionRole",
+          "myParticipantId",
+          "participants"
+        ]
+      },
+      "SetRecordStateDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "off",
+              "open",
+              "recess",
+              "closed"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "SetPresenceDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "present",
+              "sidebar",
+              "absent"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "CheckinStatusDto": {
+        "type": "object",
+        "properties": {
+          "participantId": {
+            "type": "string"
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verified",
+              "failed"
+            ]
+          },
+          "attemptsUsed": {
+            "type": "number"
+          },
+          "maxAttempts": {
+            "type": "number"
+          },
+          "oathTextVersion": {
+            "type": "string",
+            "description": "Oath text version to show; the frontend holds the translated text."
+          },
+          "oathAffirmed": {
+            "type": "boolean"
+          },
+          "admitted": {
+            "type": "boolean",
+            "description": "Admitted to the hearing room; sworn time accrues from here."
+          },
+          "presence": {
+            "type": "string",
+            "enum": [
+              "lobby",
+              "present",
+              "sidebar",
+              "caucus",
+              "absent"
+            ]
+          }
+        },
+        "required": [
+          "participantId",
+          "verification",
+          "attemptsUsed",
+          "maxAttempts",
+          "oathTextVersion",
+          "oathAffirmed",
+          "admitted",
+          "presence"
+        ]
+      },
+      "IdentityAttemptDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "biometric",
+              "certificate"
+            ]
+          },
+          "evidence": {
+            "type": "string",
+            "description": "Selfie as a data URL for biometric, or a PEM certificate."
+          }
+        },
+        "required": [
+          "method",
+          "evidence"
+        ]
+      },
+      "IdentityResultDto": {
+        "type": "object",
+        "properties": {
+          "passed": {
+            "type": "boolean"
+          },
+          "attemptNo": {
+            "type": "number"
+          },
+          "attemptsLeft": {
+            "type": "number"
+          },
+          "score": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "passed",
+          "attemptNo",
+          "attemptsLeft",
+          "score"
+        ]
+      },
+      "QueueEntryDto": {
+        "type": "object",
+        "properties": {
+          "participantId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sessionRole": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verified",
+              "failed"
+            ]
+          },
+          "attemptsUsed": {
+            "type": "number"
+          },
+          "oathAffirmed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "participantId",
+          "name",
+          "sessionRole",
+          "side",
+          "verification",
+          "attemptsUsed",
+          "oathAffirmed"
+        ]
+      },
+      "CheckinQueueDto": {
+        "type": "object",
+        "properties": {
+          "manualVerification": {
+            "description": "Failed automated checks waiting for manual verification.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueueEntryDto"
+            }
+          },
+          "awaitingAdmission": {
+            "description": "Verified and sworn, waiting in the lobby to be admitted.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueueEntryDto"
+            }
+          },
+          "inProgress": {
+            "description": "Still checking in.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueueEntryDto"
+            }
+          }
+        },
+        "required": [
+          "manualVerification",
+          "awaitingAdmission",
+          "inProgress"
+        ]
+      },
+      "ManualVerificationDto": {
+        "type": "object",
+        "properties": {
+          "documentChecked": {
+            "type": "string",
+            "description": "The identity document the officer checked on camera, e.g. \"Passport N1234567\"."
+          }
+        },
+        "required": [
+          "documentChecked"
+        ]
+      },
+      "ObjectionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "grounds": {
+            "type": "string",
+            "enum": [
+              "relevance",
+              "hearsay",
+              "leading",
+              "speculation",
+              "compound",
+              "asked_and_answered",
+              "argumentative",
+              "foundation",
+              "privilege",
+              "form"
+            ]
+          },
+          "raisedByName": {
+            "type": "string"
+          },
+          "raisedBySide": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          },
+          "lineSeq": {
+            "type": "number",
+            "nullable": true
+          },
+          "lineText": {
+            "type": "string",
+            "nullable": true
+          },
+          "ruling": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "sustained",
+              "overruled"
+            ]
+          },
+          "ruledAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "grounds",
+          "raisedByName",
+          "raisedBySide",
+          "lineSeq",
+          "lineText",
+          "ruling",
+          "ruledAt"
+        ]
+      },
+      "RaiseObjectionDto": {
+        "type": "object",
+        "properties": {
+          "grounds": {
+            "type": "string",
+            "enum": [
+              "relevance",
+              "hearsay",
+              "leading",
+              "speculation",
+              "compound",
+              "asked_and_answered",
+              "argumentative",
+              "foundation",
+              "privilege",
+              "form"
+            ]
+          },
+          "transcriptLineId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "grounds"
+        ]
+      },
+      "RuleObjectionDto": {
+        "type": "object",
+        "properties": {
+          "ruling": {
+            "type": "string",
+            "enum": [
+              "sustained",
+              "overruled"
+            ]
+          }
+        },
+        "required": [
+          "ruling"
+        ]
+      },
+      "ContinuanceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "requestedByName": {
+            "type": "string"
+          },
+          "requestedBySide": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "proposedResumeAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "requested",
+              "granted",
+              "denied"
+            ]
+          },
+          "ruledAt": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "requestedByName",
+          "requestedBySide",
+          "reason",
+          "proposedResumeAt",
+          "status",
+          "ruledAt"
+        ]
+      },
+      "RequestContinuanceDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "proposedResumeAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RuleContinuanceDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "granted",
+              "denied"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CaucusMemberDto": {
+        "type": "object",
+        "properties": {
+          "participantId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "participantId",
+          "name"
+        ]
+      },
+      "CaucusRoomDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D"
+            ]
+          },
+          "openedAt": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaucusMemberDto"
+            }
+          },
+          "iAmIn": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "side",
+          "openedAt",
+          "members",
+          "iAmIn"
+        ]
+      },
+      "TranscriptLineDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "number"
+          },
+          "speakerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "speakerRole": {
+            "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "q",
+              "a",
+              "colloquy",
+              "procedural"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "seq",
+          "speakerName",
+          "speakerRole",
+          "kind",
+          "text",
+          "at"
+        ]
+      },
+      "AddTranscriptLineDto": {
+        "type": "object",
+        "properties": {
+          "speakerId": {
+            "type": "string",
+            "description": "Participant speaking; omit for procedural lines."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "q",
+              "a",
+              "colloquy",
+              "procedural"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text"
+        ]
+      },
+      "CorrectTranscriptLineDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "MediaTokenRequestDto": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "\"hearing\" for the hearing room, or a caucus room id."
+          }
+        },
+        "required": [
+          "room"
+        ]
+      },
+      "MediaTokenDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "roomName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "token",
+          "roomName"
+        ]
+      },
+      "ExhibitDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string",
+            "description": "P-001 style once offered; a private label while tagged."
+          },
+          "title": {
+            "type": "string"
+          },
+          "pages": {
+            "type": "number"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "tagged",
+              "offered",
+              "admitted",
+              "excluded"
+            ]
+          },
+          "offeredAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "ruledAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "mine": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "title",
+          "pages",
+          "side",
+          "status",
+          "offeredAt",
+          "ruledAt",
+          "mine"
+        ]
+      },
+      "PublishExhibitDto": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sessionId"
+        ]
+      },
+      "RuleExhibitDto": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          },
+          "ruling": {
+            "type": "string",
+            "enum": [
+              "admitted",
+              "excluded"
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "ruling"
+        ]
+      },
+      "PublicationDto": {
+        "type": "object",
+        "properties": {
+          "publicationId": {
+            "type": "string"
+          },
+          "exhibitId": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "pages": {
+            "type": "number"
+          },
+          "publishedByName": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "publicationId",
+          "exhibitId",
+          "label",
+          "title",
+          "pages",
+          "publishedByName",
+          "startedAt"
+        ]
+      },
+      "SessionPublicationDto": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicationDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current"
+        ]
+      },
+      "RevealedVoteDto": {
+        "type": "object",
+        "properties": {
+          "panelistName": {
+            "type": "string"
+          },
+          "choice": {
+            "type": "string",
+            "enum": [
+              "for_plaintiff",
+              "for_defense"
+            ]
+          }
+        },
+        "required": [
+          "panelistName",
+          "choice"
+        ]
+      },
+      "RevealDto": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "for_plaintiff",
+              "for_defense",
+              "no_majority"
+            ]
+          },
+          "votes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevealedVoteDto"
+            }
+          },
+          "revealedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome",
+          "votes",
+          "revealedAt"
+        ]
+      },
+      "DeliberationDto": {
+        "type": "object",
+        "properties": {
+          "panelSize": {
+            "type": "number"
+          },
+          "sealedCount": {
+            "type": "number"
+          },
+          "iAmPanelist": {
+            "type": "boolean"
+          },
+          "myStatus": {
+            "type": "string",
+            "enum": [
+              "none",
+              "draft",
+              "sealed"
+            ]
+          },
+          "myDraftChoice": {
+            "type": "string",
+            "enum": [
+              "for_plaintiff",
+              "for_defense"
+            ],
+            "nullable": true
+          },
+          "revealed": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RevealDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "panelSize",
+          "sealedCount",
+          "iAmPanelist",
+          "myStatus",
+          "myDraftChoice",
+          "revealed"
+        ]
+      },
+      "CastBallotDto": {
+        "type": "object",
+        "properties": {
+          "choice": {
+            "type": "string",
+            "enum": [
+              "for_plaintiff",
+              "for_defense"
+            ]
+          }
+        },
+        "required": [
+          "choice"
+        ]
+      },
+      "SealDto": {
+        "type": "object",
+        "properties": {
+          "errataDeadline": {
+            "type": "string"
+          },
+          "errataClosedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "errataWindowOpen": {
+            "type": "boolean"
+          },
+          "digestSha256": {
+            "type": "string",
+            "nullable": true
+          },
+          "signature": {
+            "type": "string",
+            "nullable": true,
+            "description": "Base64"
+          },
+          "lockedAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "lockedByName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "errataDeadline",
+          "errataClosedAt",
+          "errataWindowOpen",
+          "digestSha256",
+          "signature",
+          "lockedAt",
+          "lockedByName"
+        ]
+      },
+      "ErratumDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "lineSeq": {
+            "type": "number"
+          },
+          "original": {
+            "type": "string"
+          },
+          "corrected": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "transcription",
+              "substantive"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "accepted",
+              "rejected"
+            ]
+          },
+          "filedByName": {
+            "type": "string"
+          },
+          "decidedByName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "lineSeq",
+          "original",
+          "corrected",
+          "kind",
+          "status",
+          "filedByName",
+          "decidedByName"
+        ]
+      },
+      "ExportDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "manifestSha256": {
+            "type": "string"
+          },
+          "exportedByName": {
+            "type": "string"
+          },
+          "exportedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "manifestSha256",
+          "exportedByName",
+          "exportedAt"
+        ]
+      },
+      "RecordStatusDto": {
+        "type": "object",
+        "properties": {
+          "sessionClosed": {
+            "type": "boolean"
+          },
+          "seal": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SealDto"
+              }
+            ]
+          },
+          "errata": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErratumDto"
+            }
+          },
+          "exports": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportDto"
+            }
+          }
+        },
+        "required": [
+          "sessionClosed",
+          "seal",
+          "errata",
+          "exports"
+        ]
+      },
+      "FileErratumDto": {
+        "type": "object",
+        "properties": {
+          "transcriptLineId": {
+            "type": "string"
+          },
+          "corrected": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "transcription",
+              "substantive"
+            ]
+          }
+        },
+        "required": [
+          "transcriptLineId",
+          "corrected",
+          "kind"
+        ]
+      },
+      "DecideErratumDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "DocketSessionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "docketNo": {
+            "type": "string"
+          },
+          "forum": {
+            "type": "string"
+          },
+          "dayNo": {
+            "type": "number"
+          },
+          "startsAt": {
+            "type": "string"
+          },
+          "recordState": {
+            "type": "string",
+            "enum": [
+              "off",
+              "open",
+              "recess",
+              "closed"
+            ]
+          },
+          "sealStatus": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "errata_open",
+              "ready_to_lock",
+              "locked",
+              "exported"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "caption",
+          "docketNo",
+          "forum",
+          "dayNo",
+          "startsAt",
+          "recordState",
+          "sealStatus"
+        ]
+      },
+      "DocketDayDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "YYYY-MM-DD (UTC)"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocketSessionDto"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "sessions"
+        ]
+      },
+      "DocketWeekDto": {
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string"
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocketDayDto"
+            }
+          }
+        },
+        "required": [
+          "weekStart",
+          "days"
+        ]
+      },
+      "MetricDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "verificationPassRate",
+              "objectionsPerSession",
+              "continuanceGrantRate",
+              "meanHoursToHashLock"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "nullable": true,
+            "description": "null when the denominator is 0"
+          },
+          "numerator": {
+            "type": "number"
+          },
+          "denominator": {
+            "type": "number"
+          },
+          "periodFrom": {
+            "type": "string"
+          },
+          "periodTo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value",
+          "numerator",
+          "denominator",
+          "periodFrom",
+          "periodTo"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "bearer": []
+    }
+  ]
+}

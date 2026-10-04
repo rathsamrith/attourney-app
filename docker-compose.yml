@@ -1,0 +1,46 @@
+# Local development services for Attest. Not for production.
+name: attest
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: attest
+      POSTGRES_PASSWORD: attest
+      POSTGRES_DB: attest
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U attest"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  # OIDC provider. Imports infra/keycloak/attest-realm.json on first start.
+  # Dev users all have password "attest"; MFA and smart-card login are configured per environment.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports: ["8080:8080"]
+    volumes: ["./infra/keycloak:/opt/keycloak/data/import:ro"]
+
+  # SFU for hearing and caucus video. Dev mode; keys must match backend/.env.
+  # Media never passes through the API, and no recording is configured.
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --dev --bind 0.0.0.0
+    environment:
+      LIVEKIT_KEYS: "devkey: attest-dev-livekit-secret-change-me-0000"
+    ports: ["7880:7880", "7881:7881", "7882:7882/udp"]
+
+  # S3-compatible storage for exhibits and certified exports is added with the exhibit
+  # upload story (S4). MinIO no longer publishes public images, so pick an alternative then.
+
+volumes:
+  pgdata:
