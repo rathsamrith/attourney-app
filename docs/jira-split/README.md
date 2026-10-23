@@ -3,7 +3,8 @@
 `jira-wbs.csv` split into one file per team member. The hierarchy is
 **Epic (module) → User Story (function) → Task (sub-task)**. Each member owns
 whole modules, so every file is self-contained — all parent links resolve inside
-the file. Everyone imports their own file into **LPS — Legal Platform Scrum**.
+the file. Everyone imports their own file into the **KAN — Project Management**
+project.
 
 | File | Member | Epics | Stories | Tasks |
 |------|--------|------:|--------:|------:|
@@ -25,9 +26,9 @@ rule is met and all five columns fill evenly (50 tasks per column overall).
 The hierarchy is carried by **`Issue Id`** + **`Parent Id`** (each row's immediate
 parent): Story → Epic and Sub-task → Story.
 
-## How to import one file (team-managed LPS)
-1. LPS board → **⋯ → Import issues (CSV)** (or Settings → System → External
-   System Import → CSV), upload your file, select project **LPS**.
+## How to import one file (KAN, team-managed)
+1. KAN board → **⋯ → Import issues (CSV)** (or Settings → System → External
+   System Import → CSV), upload your file, select project **KAN**.
 2. Map **`Issue Id` → Issue Id** and **`Parent Id` → Parent** — this links all
    three levels in one go.
 3. Map **`Status`** values to the five board columns, and map **`Assignee`** to
@@ -41,7 +42,7 @@ parent): Story → Epic and Sub-task → Story.
 
 ## Note on accounts
 The site has no **Mai Samorn** or **Chhim Kimheng** account yet (and two accounts
-both display "Hort ranut"). Invite those two to LPS before importing their files,
+both display "Hort ranut"). Invite those two to KAN before importing their files,
 or their issues import unassigned. See `../JIRA_PUSH.md` for the accountId map.
 
 The full plan in one file is `../jira-wbs.csv`; the automated API push is

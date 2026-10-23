@@ -23,7 +23,7 @@ https://id.atlassian.com/manage-profile/security/api-tokens → **Create API tok
 export JIRA_BASE_URL="https://hortranut1111.atlassian.net"
 export JIRA_EMAIL="you@example.com"
 export JIRA_API_TOKEN="<the token>"
-export JIRA_PROJECT_KEY="LPS"
+export JIRA_PROJECT_KEY="KAN"
 ```
 
 PowerShell uses `$env:NAME = "..."`.
@@ -63,9 +63,22 @@ python docs/jira_push.py               # create for real
   exists (sub-tasks inherit their story's sprint).
 - **Idempotent:** searches by summary before creating, so re-runs don't duplicate.
 
-## Board columns (one-time, team-managed LPS)
+## Sprints first (KAN is a Kanban project)
+KAN ("Project Management") is Kanban, which has no sprints by default. Before the
+`Sprint` column means anything:
+1. **Project settings → Features → enable "Sprints"** (and "Backlog").
+2. Open **Backlog**, click **Create sprint**, then **••• → Edit sprint** and set
+   name / start / end / goal for each of the four — use the exact names in
+   `jira-sprints.csv` so the issue import matches them:
+   `Sprint 1 - Data Collection & Design`, `Sprint 2 - Implementation`,
+   `Sprint 3 - Testing`, `Sprint 4 - Deployment & Submission`.
+
+Then importing the issues (with the `Sprint` column mapped) drops each story into
+the matching sprint.
+
+## Board columns (one-time)
 A board column is backed by a workflow status. For the five named columns to
-exist, set the LPS board's columns to **Data Collection Backlog · Design ·
+exist, set the KAN board's columns to **Data Collection Backlog · Design ·
 Implementation · Testing · Deployment** (Board → ⋯ → Configure board → Columns)
 before running. Missing columns are reported and those sub-tasks stay in the
 default status; add the column and re-run.
