@@ -10,6 +10,45 @@ Remote hearing management: check-in and identity verification, the live record, 
 
 Video runs through a LiveKit SFU; the API only issues room tokens. Vendor services (face match, certificate OCSP, HSM signing, RFC 3161 timestamps, object storage) sit behind interfaces in `backend/src/providers/` with development fakes and local-disk storage.
 
+## Run everything (Docker)
+
+One command builds and starts the whole system — Postgres, Redis, Keycloak, LiveKit, the API (migrated and seeded automatically) and the web app:
+
+```sh
+docker compose up -d --build        # first run builds the images; later runs: docker compose up -d
+```
+
+Then open **http://localhost:5173** and sign in with any dev user below (password `attest`). API docs are at http://localhost:3000/api/docs; Keycloak admin at http://localhost:8080 (`admin` / `admin`). Stop with `docker compose down` (add `-v` to also wipe the database and stored exports).
+
+The backend container applies migrations on every start and seeds the database once (when the `matters` table is empty). The token issuer is `http://localhost:8080` (what the browser uses); the backend validates that issuer but fetches Keycloak's signing keys over the internal network at `http://keycloak:8080` (`OIDC_JWKS_URI`), so no hosts-file setup is needed. This stack is for local use, not production.
+
+## Project management (OpenProject)
+
+A self-hosted OpenProject Community instance tracks the delivery work:
+
+```sh
+docker compose -f docker-compose.openproject.yml up -d     # http://localhost:8090 (admin / admin)
+```
+
+Seed the "Attest" project (6 members, 10 Epics, 10 User Stories, 30 Tasks across a 5-column board and 4 sprints), build the Sprint → Epic → User Story → Task hierarchy, and turn on the Scrum/Backlogs board. The scripts are idempotent:
+
+```sh
+docker compose -f docker-compose.openproject.yml cp docs/op_seed.rb      openproject:/tmp/op_seed.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_hierarchy.rb openproject:/tmp/op_hierarchy.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_backlogs.rb  openproject:/tmp/op_backlogs.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_board.rb     openproject:/tmp/op_board.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_estimate.rb  openproject:/tmp/op_estimate.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_seed.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_hierarchy.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_backlogs.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_board.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_estimate.rb
+```
+
+`op_board.rb` adds a 5-column "Attest Scrum Board" (a Basic board with one status-filtered list per column). `op_estimate.rb` sets estimated time on tasks and story points on user stories. If a member login ever fails, `op_fix_users.rb` re-sets the six member passwords.
+
+The same plan can be loaded into Jira: bulk-import `docs/jira-import.csv` via Jira's CSV importer, or push it over the Jira Cloud REST API with `docs/jira_push.py` (10 Epics + 30 Tasks, linked, assigned, estimated — see `docs/JIRA_PUSH.md`).
+
 ## Run locally
 
 Needs Node 24+ and Docker Desktop (with WSL 2 on Windows).
