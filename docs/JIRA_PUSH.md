@@ -77,3 +77,36 @@ Jira's **CSV importer** (`jira-import.csv`) maps the `Status` column to the five
 board columns during import and can create the statuses for you — no UI column
 setup needed. The `op_*.rb` scripts build the identical 5-column board in the
 self-hosted OpenProject instance (see the top-level `README.md`).
+
+## Importing `jira-import.csv` into the LPS project
+
+Target project: **LPS — Legal Platform Scrum** (team-managed Scrum) on
+`https://hortranut1111.atlassian.net`.
+
+1. **Settings (gear) → System → External System Import → CSV** (site-admin), or
+   from a board: **⋯ → Import issues (CSV)**.
+2. Upload `docs/jira-import.csv`, select project **LPS**.
+3. Map the columns: `Issue Type`, `Summary`, `Epic Name`, `Epic Link`,
+   `Assignee`, `Status`, `Sprint`, `Story Points`, `Due Date`, `Labels`.
+4. On the **Assignee** step the wizard lists each distinct name — map each to the
+   right Jira account:
+
+   | CSV name | Jira account (accountId) |
+   |---|---|
+   | Rath | Rath Samrith (`712020:9b91ce6c-dbb7-433f-9568-3cfdedf2ee68`) |
+   | Chandy Moeun | Chandy Moeun (`712020:352984ab-b821-45ec-8f55-8d1b93415e73`) |
+   | Chhun Senghak | "Senghak chhun" (`712020:243c0a25-ea27-46de-a719-212c153bc21b`) |
+   | Hort Ranut | "Hort ranut" (`712020:c974e22e-b20c-41da-90a2-e01e7c720cbb`) |
+   | **Mai Samorn** | *no account yet* — invite them, or map to the 2nd "Hort ranut" (`712020:2e0d9693-4f64-4078-b177-dba3d72e7698`) |
+   | **Chhim Kimheng** | *no account yet* — invite them first |
+
+   > The site currently has only 5 accounts (two both display "Hort ranut"), so
+   > **Mai Samorn** and **Chhim Kimheng** don't exist. Invite them to the LPS
+   > project before importing for a clean six-person board, or leave them
+   > unmapped (those tasks import unassigned) and assign later.
+5. Map `Status` values to the five board columns (create them if prompted).
+6. Run the import. Afterwards, open the board and confirm the five columns each
+   hold their tasks.
+
+For a fully automated push (no wizard) use `jira_push.py` once Mai & Kimheng have
+accounts — see the top of this file.
