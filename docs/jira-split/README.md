@@ -1,46 +1,48 @@
-# Per-person CSV import files
+# Per-person CSV import files (3-level WBS)
 
-`jira-import.csv` split into one file per team member. Each file contains the
-**module(s) that person leads** (Epic rows) and the **tasks assigned to them**
-(Task rows). Everyone imports their own file into the **LPS — Legal Platform
-Scrum** project.
+`jira-wbs.csv` split into one file per team member. The hierarchy is
+**Epic (module) → User Story (function) → Task (sub-task)**. Each member owns
+whole modules, so every file is self-contained — all parent links resolve inside
+the file. Everyone imports their own file into **LPS — Legal Platform Scrum**.
 
-| File | Member | Epics | Tasks |
-|------|--------|------:|------:|
-| `mai-samorn.csv`    | Mai Samorn    | 2 | 5 |
-| `hort-ranut.csv`    | Hort Ranut    | 1 | 5 |
-| `chhun-senghak.csv` | Chhun Senghak | 3 | 5 |
-| `chhim-kimheng.csv` | Chhim Kimheng | 2 | 5 |
-| `rath.csv`          | Rath Samrith  | 1 | 5 |
-| `chandy-moeun.csv`  | Chandy Moeun  | 1 | 5 |
-| **Total** | | **10** | **30** |
+| File | Member | Epics | Stories | Tasks |
+|------|--------|------:|--------:|------:|
+| `rath.csv`          | Rath Samrith  | 1 | 5  | 25 |
+| `chandy-moeun.csv`  | Chandy Moeun  | 1 | 5  | 25 |
+| `mai-samorn.csv`    | Mai Samorn    | 2 | 10 | 50 |
+| `chhun-senghak.csv` | Chhun Senghak | 3 | 15 | 75 |
+| `chhim-kimheng.csv` | Chhim Kimheng | 2 | 10 | 50 |
+| `hort-ranut.csv`    | Hort Ranut    | 1 | 5  | 25 |
+| **Total** | | **10** | **50** | **250** |
 
-## How to import one file
+Each user story has exactly **5 tasks** (one per board column), so the ≥5-tasks
+rule is met and all five columns fill evenly (50 tasks per column overall).
+
+## Columns in each file
+`Issue Id`, `Issue Type`, `Summary`, `Parent Id`, `Epic Name`, `Assignee`,
+`Status`, `Sprint`, `Story Points`, `Due Date`, `Labels`.
+
+The hierarchy is carried by **`Issue Id`** + **`Parent Id`** (each row's immediate
+parent): Story → Epic and Sub-task → Story.
+
+## How to import one file (team-managed LPS)
 1. LPS board → **⋯ → Import issues (CSV)** (or Settings → System → External
    System Import → CSV), upload your file, select project **LPS**.
-2. Map the columns — headers already match Jira's fields. In a **team-managed**
-   project map **Epic Link → Parent**.
-3. On the **Assignee** step, map your name to your Jira account.
-4. Map the `Status` values to the five board columns.
+2. Map **`Issue Id` → Issue Id** and **`Parent Id` → Parent** — this links all
+   three levels in one go.
+3. Map **`Status`** values to the five board columns, and map **`Assignee`** to
+   your Jira account.
+4. `Story Points` → Story point estimate; `Sprint` → Sprint; `Due Date` → Due
+   date; `Labels` → Labels.
 
-## Import order (matters for 4 tasks)
-A task links to its Epic only if that Epic already exists in the project. Most
-tasks (26/30) sit in their own owner's module, so they link within the same file.
-**Four tasks belong to a module a teammate leads** — import the owner's file
-first, or just set the Epic/Parent on these four afterward (one click each):
-
-| Task | In file | Needs Epic from |
-|------|---------|-----------------|
-| Implement real face-match adapter | `rath.csv` | `mai-samorn.csv` (Vendor Integrations) |
-| Collect EN/KM localization strings & glossary | `chandy-moeun.csv` | `chhim-kimheng.csv` (Docket & Notifications) |
-| Write release notes & user documentation | `chandy-moeun.csv` | `chhim-kimheng.csv` (Docket & Notifications) |
-| Deploy backend container with migrate + seed | `chhim-kimheng.csv` | `hort-ranut.csv` (Infrastructure & CI/CD) |
-
-If one person imports everything, this order resolves all links:
-**mai-samorn → hort-ranut → chhun-senghak → chhim-kimheng → rath → chandy-moeun**.
+> Because the import creates rows top-down and `Parent Id` references earlier
+> rows, keep the row order as generated (Epic, then its Stories, then their
+> Sub-tasks).
 
 ## Note on accounts
-The Jira site currently has no **Mai Samorn** or **Chhim Kimheng** account (and
-two accounts both display "Hort ranut"). Invite those two to LPS before importing
-their files, or their issues import unassigned — see `../JIRA_PUSH.md` for the
-account mapping. The combined single-file version is `../jira-import.csv`.
+The site has no **Mai Samorn** or **Chhim Kimheng** account yet (and two accounts
+both display "Hort ranut"). Invite those two to LPS before importing their files,
+or their issues import unassigned. See `../JIRA_PUSH.md` for the accountId map.
+
+The full plan in one file is `../jira-wbs.csv`; the automated API push is
+`../jira_push.py`.

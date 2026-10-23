@@ -47,7 +47,7 @@ docker compose -f docker-compose.openproject.yml exec openproject bundle exec ra
 
 `op_board.rb` adds a 5-column "Attest Scrum Board" (a Basic board with one status-filtered list per column). `op_estimate.rb` sets estimated time on tasks and story points on user stories. If a member login ever fails, `op_fix_users.rb` re-sets the six member passwords.
 
-The same plan can be loaded into Jira: bulk-import `docs/jira-import.csv` via Jira's CSV importer, or push it over the Jira Cloud REST API with `docs/jira_push.py` (10 Epics + 30 Tasks, linked, assigned, estimated — see `docs/JIRA_PUSH.md`).
+The same plan can be loaded into Jira as a 3-level breakdown — **Epic (module) → User Story (function) → Task (sub-task)**, 10 Epics / 50 User Stories / 250 Tasks. Bulk-import `docs/jira-wbs.csv` (or the per-person files in `docs/jira-split/`) via Jira's CSV importer, or push it over the Jira Cloud REST API with `docs/jira_push.py` (linked, assigned, estimated, sub-tasks moved into the 5 board columns — see `docs/JIRA_PUSH.md`). The earlier flat version (10 Epics + 30 Tasks) remains in `docs/jira-import.csv`.
 
 ## Run locally
 
