@@ -1,0 +1,5 @@
+"Sprint","Start Date","End Date","State","Goal","Stories","Tasks","Story Points"
+"Sprint 1 - Data Collection & Design","2026-10-20","2026-10-26","active","Gather requirements and design all modules","13","65","65"
+"Sprint 2 - Implementation","2026-10-27","2026-11-02","future","Build the module functions","13","65","65"
+"Sprint 3 - Testing","2026-11-03","2026-11-09","future","Unit, e2e and integration testing","12","60","60"
+"Sprint 4 - Deployment & Submission","2026-11-10","2026-11-13","future","Deploy, harden and submit","12","60","60"
