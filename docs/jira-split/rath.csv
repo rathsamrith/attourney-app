@@ -1,0 +1,7 @@
+"Issue Type","Summary","Epic Name","Epic Link","Assignee","Status","Sprint","Story Points","Due Date","Labels"
+"Epic","Check-in & Identity Verification","Check-in & Identity","","Rath","To Do","","","","module"
+"Task","Gather hearing & identity verification requirements","","Check-in & Identity","Rath","Data Collection Backlog","Sprint 1 - Data Collection & Design","3","2026-10-26","data-collection"
+"Task","Design check-in & identity UX flow","","Check-in & Identity","Rath","Design","Sprint 1 - Data Collection & Design","3","2026-10-26","design"
+"Task","Implement real face-match adapter","","Vendor Integrations","Rath","Implementation","Sprint 2 - Implementation","5","2026-11-02","implementation"
+"Task","Write unit & e2e tests for check-in/identity","","Check-in & Identity","Rath","Testing","Sprint 3 - Testing","3","2026-11-09","testing"
+"Task","Staging smoke test & Stage III sign-off","","Check-in & Identity","Rath","Deployment","Sprint 4 - Deployment & Submission","3","2026-11-13","deployment"

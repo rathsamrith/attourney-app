@@ -1,0 +1,8 @@
+"Issue Type","Summary","Epic Name","Epic Link","Assignee","Status","Sprint","Story Points","Due Date","Labels"
+"Epic","Audit Trail & Realtime","Audit & Realtime","","Chhim Kimheng","To Do","","","","module"
+"Epic","Docket & Notifications","Docket & Notifications","","Chhim Kimheng","To Do","","","","module"
+"Task","Define ERD: matters, sessions, participants, audit","","Audit & Realtime","Chhim Kimheng","Data Collection Backlog","Sprint 1 - Data Collection & Design","5","2026-10-26","data-collection"
+"Task","Design audit hash-chain & realtime event model","","Audit & Realtime","Chhim Kimheng","Design","Sprint 1 - Data Collection & Design","3","2026-10-26","design"
+"Task","Implement NotificationsModule & notifications","","Docket & Notifications","Chhim Kimheng","Implementation","Sprint 2 - Implementation","3","2026-11-02","implementation"
+"Task","Write backend unit tests for thin modules","","Audit & Realtime","Chhim Kimheng","Testing","Sprint 3 - Testing","5","2026-11-09","testing"
+"Task","Deploy backend container with migrate + seed","","Infrastructure & CI/CD","Chhim Kimheng","Deployment","Sprint 4 - Deployment & Submission","3","2026-11-13","deployment"

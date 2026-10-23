@@ -1,0 +1,7 @@
+"Issue Type","Summary","Epic Name","Epic Link","Assignee","Status","Sprint","Story Points","Due Date","Labels"
+"Epic","Live Proceeding & Transcript","Live Proceeding","","Chandy Moeun","To Do","","","","module"
+"Task","Collect EN/KM localization strings & glossary","","Docket & Notifications","Chandy Moeun","Data Collection Backlog","Sprint 1 - Data Collection & Design","2","2026-10-26","data-collection"
+"Task","Design transcript & objections UI panels","","Live Proceeding","Chandy Moeun","Design","Sprint 1 - Data Collection & Design","3","2026-10-26","design"
+"Task","Implement transcript, objections & exhibits UI","","Live Proceeding","Chandy Moeun","Implementation","Sprint 2 - Implementation","5","2026-11-02","implementation"
+"Task","Vitest + RTL coverage for 8 feature pages","","Live Proceeding","Chandy Moeun","Testing","Sprint 3 - Testing","5","2026-11-09","testing"
+"Task","Write release notes & user documentation","","Docket & Notifications","Chandy Moeun","Deployment","Sprint 4 - Deployment & Submission","2","2026-11-13","deployment"

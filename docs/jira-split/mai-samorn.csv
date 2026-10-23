@@ -1,0 +1,8 @@
+"Issue Type","Summary","Epic Name","Epic Link","Assignee","Status","Sprint","Story Points","Due Date","Labels"
+"Epic","Exhibits Management","Exhibits","","Mai Samorn","To Do","","","","module"
+"Epic","Vendor Integrations (Providers)","Vendor Integrations","","Mai Samorn","To Do","","","","module"
+"Task","Research face-match & OCSP certificate vendors","","Vendor Integrations","Mai Samorn","Data Collection Backlog","Sprint 1 - Data Collection & Design","3","2026-10-26","data-collection"
+"Task","Design exhibit lifecycle & storage model","","Exhibits","Mai Samorn","Design","Sprint 1 - Data Collection & Design","3","2026-10-26","design"
+"Task","Implement OCSP validator & S3 storage adapters","","Vendor Integrations","Mai Samorn","Implementation","Sprint 2 - Implementation","5","2026-11-02","implementation"
+"Task","Write tests for exhibits & storage","","Exhibits","Mai Samorn","Testing","Sprint 3 - Testing","3","2026-11-09","testing"
+"Task","Swap providers to production (useClass)","","Vendor Integrations","Mai Samorn","Deployment","Sprint 4 - Deployment & Submission","2","2026-11-13","deployment"

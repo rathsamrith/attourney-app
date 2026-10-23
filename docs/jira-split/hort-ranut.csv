@@ -1,0 +1,7 @@
+"Issue Type","Summary","Epic Name","Epic Link","Assignee","Status","Sprint","Story Points","Due Date","Labels"
+"Epic","Infrastructure, CI/CD & Deployment","Infrastructure & CI/CD","","Hort Ranut","To Do","","","","module"
+"Task","Inventory infra: Keycloak, LiveKit, Postgres, Redis","","Infrastructure & CI/CD","Hort Ranut","Data Collection Backlog","Sprint 1 - Data Collection & Design","3","2026-10-26","data-collection"
+"Task","Design CI/CD pipeline & Docker topology","","Infrastructure & CI/CD","Hort Ranut","Design","Sprint 1 - Data Collection & Design","3","2026-10-26","design"
+"Task","Implement one-command Dockerized stack","","Infrastructure & CI/CD","Hort Ranut","Implementation","Sprint 2 - Implementation","5","2026-11-02","implementation"
+"Task","Set up CI test pipeline: lint + unit + e2e","","Infrastructure & CI/CD","Hort Ranut","Testing","Sprint 3 - Testing","3","2026-11-09","testing"
+"Task","Deploy frontend (nginx) & LiveKit config","","Infrastructure & CI/CD","Hort Ranut","Deployment","Sprint 4 - Deployment & Submission","3","2026-11-13","deployment"
