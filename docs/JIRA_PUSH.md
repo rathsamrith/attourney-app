@@ -7,8 +7,11 @@ board column), so all five Scrum columns hold 50 tasks each.
 
 Two ways to load it:
 
-- **CSV import** (no code) — `jira-wbs.csv` (whole plan) or the per-person files
-  in `jira-split/`. See `jira-split/README.md`.
+- **CSV import** (no code) — import `jira-wbs.csv` (the whole plan) in one run.
+  User stories are distributed evenly across all six members and four sprints, so
+  one import assigns the whole team. The per-person files in `jira-split/` are
+  individual worklists (they share epics — don't import them all into one
+  project). See `jira-split/README.md`.
 - **API push** (`jira_push.py`) — creates everything over the REST API, linked
   and assigned, and moves each sub-task into its column.
 

@@ -1,49 +1,45 @@
-# Per-person CSV import files (3-level WBS)
+# Per-person CSV files (balanced 3-level WBS)
 
-`jira-wbs.csv` split into one file per team member. The hierarchy is
-**Epic (module) → User Story (function) → Task (sub-task)**. Each member owns
-whole modules, so every file is self-contained — all parent links resolve inside
-the file. Everyone imports their own file into the **KAN — Project Management**
-project.
+`jira-wbs.csv` split into one file per team member — each person's **worklist**.
+The hierarchy is **Epic (module) → User Story (function) → Task (sub-task)**, and
+user stories are **distributed evenly across all six members and the four
+sprints** (not by module). Each file is self-contained — it includes the epics
+its stories reference, plus those stories and their sub-tasks — so parent links
+resolve within the file.
 
-| File | Member | Epics | Stories | Tasks |
-|------|--------|------:|--------:|------:|
-| `rath.csv`          | Rath Samrith  | 1 | 5  | 25 |
-| `chandy-moeun.csv`  | Chandy Moeun  | 1 | 5  | 25 |
-| `mai-samorn.csv`    | Mai Samorn    | 2 | 10 | 50 |
-| `chhun-senghak.csv` | Chhun Senghak | 3 | 15 | 75 |
-| `chhim-kimheng.csv` | Chhim Kimheng | 2 | 10 | 50 |
-| `hort-ranut.csv`    | Hort Ranut    | 1 | 5  | 25 |
-| **Total** | | **10** | **50** | **250** |
+| File | Member | Stories | Tasks | per sprint (S1·S2·S3·S4) |
+|------|--------|--------:|------:|:--|
+| `rath.csv`          | Rath Samrith  | 9 | 45 | 3·2·2·2 |
+| `mai-samorn.csv`    | Mai Samorn    | 9 | 45 | 2·3·2·2 |
+| `chhun-senghak.csv` | Chhun Senghak | 8 | 40 | 2·2·2·2 |
+| `chandy-moeun.csv`  | Chandy Moeun  | 8 | 40 | 2·2·2·2 |
+| `chhim-kimheng.csv` | Chhim Kimheng | 8 | 40 | 2·2·2·2 |
+| `hort-ranut.csv`    | Hort Ranut    | 8 | 40 | 2·2·2·2 |
+| **Total** | | **50** | **250** | 65·65·60·60 |
 
-Each user story has exactly **5 tasks** (one per board column), so the ≥5-tasks
-rule is met and all five columns fill evenly (50 tasks per column overall).
+Each story still has exactly **5 tasks** (one per board column), so overall each of
+the five columns holds 50 tasks.
 
-## Columns in each file
+## Which file to import
+- **For the real Jira project, import the combined `../jira-wbs.csv` once.** It
+  creates all 10 epics, 50 stories and 250 sub-tasks, links them, and assigns the
+  whole team in a single run.
+- The per-member files here **share epics** (the same module appears in several
+  members' files, because their stories are spread across modules). So **don't
+  import all of them into the same project** — the epics would duplicate. Use them
+  as each person's worklist, or import a single one into a personal sandbox.
+
+## Columns
 `Issue Id`, `Issue Type`, `Summary`, `Parent Id`, `Epic Name`, `Assignee`,
-`Status`, `Sprint`, `Story Points`, `Due Date`, `Labels`.
+`Status`, `Sprint`, `Story Points`, `Due Date`, `Labels`. The hierarchy is carried
+by `Issue Id` + `Parent Id` (Story → Epic, Sub-task → Story).
 
-The hierarchy is carried by **`Issue Id`** + **`Parent Id`** (each row's immediate
-parent): Story → Epic and Sub-task → Story.
-
-## How to import one file (KAN, team-managed)
-1. KAN board → **⋯ → Import issues (CSV)** (or Settings → System → External
-   System Import → CSV), upload your file, select project **KAN**.
-2. Map **`Issue Id` → Issue Id** and **`Parent Id` → Parent** — this links all
-   three levels in one go.
-3. Map **`Status`** values to the five board columns, and map **`Assignee`** to
-   your Jira account.
-4. `Story Points` → Story point estimate; `Sprint` → Sprint; `Due Date` → Due
-   date; `Labels` → Labels.
-
-> Because the import creates rows top-down and `Parent Id` references earlier
-> rows, keep the row order as generated (Epic, then its Stories, then their
-> Sub-tasks).
+## Import mapping (team-managed KAN)
+Map `Issue Id → Issue Id` and `Parent Id → Parent`; map `Status` → the five board
+columns and `Assignee` → each Jira account. Create the four sprints first (KAN is
+Kanban — enable the Sprints feature), then map `Sprint → Sprint`. See
+`../JIRA_PUSH.md`.
 
 ## Note on accounts
-The site has no **Mai Samorn** or **Chhim Kimheng** account yet (and two accounts
-both display "Hort ranut"). Invite those two to KAN before importing their files,
-or their issues import unassigned. See `../JIRA_PUSH.md` for the accountId map.
-
-The full plan in one file is `../jira-wbs.csv`; the automated API push is
-`../jira_push.py`.
+The site has no **Mai Samorn** or **Chhim Kimheng** account yet; invite them to KAN
+so their items assign. The automated API push is `../jira_push.py`.
