@@ -34,12 +34,13 @@ the five columns holds 50 tasks.
 `Status`, `Sprint`, `Story Points`, `Due Date`, `Labels`. The hierarchy is carried
 by `Issue Id` + `Parent Id` (Story → Epic, Sub-task → Story).
 
-## Import mapping (team-managed KAN)
+## Import mapping (team-managed AA, kai-dev)
 Map `Issue Id → Issue Id` and `Parent Id → Parent`; map `Status` → the five board
-columns and `Assignee` → each Jira account. Create the four sprints first (KAN is
-Kanban — enable the Sprints feature), then map `Sprint → Sprint`. See
+columns and `Assignee` → each Jira account. Create the four sprints first (AA is a
+Scrum project — create them on the Backlog), then map `Sprint → Sprint`. See
 `../JIRA_PUSH.md`.
 
 ## Note on accounts
-The site has no **Mai Samorn** or **Chhim Kimheng** account yet; invite them to KAN
+Add the six members to the AA project so they're assignable; otherwise map what you
+can during import and leave the rest unassigned. Invite missing members to AA
 so their items assign. The automated API push is `../jira_push.py`.

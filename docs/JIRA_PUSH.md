@@ -23,29 +23,27 @@ https://id.atlassian.com/manage-profile/security/api-tokens → **Create API tok
 ## 2. Set the connection (do NOT commit these)
 
 ```sh
-export JIRA_BASE_URL="https://hortranut1111.atlassian.net"
+export JIRA_BASE_URL="https://kai-dev.atlassian.net"
 export JIRA_EMAIL="you@example.com"
 export JIRA_API_TOKEN="<the token>"
-export JIRA_PROJECT_KEY="KAN"
+export JIRA_PROJECT_KEY="AA"
 ```
 
 PowerShell uses `$env:NAME = "..."`.
 
 ## 3. Map members to Jira accounts
-Edit `MEMBER_ACCOUNT_IDS` at the top of `jira_push.py`. Emails are hidden by
-privacy on this site, so the script maps by **accountId**. Discovered so far:
+Edit `MEMBER_ACCOUNT_IDS` at the top of `jira_push.py` with each member's
+**accountId** on the kai-dev site. Look them up with:
 
-| CSV name | accountId |
-|---|---|
-| Rath | `712020:9b91ce6c-dbb7-433f-9568-3cfdedf2ee68` |
-| Chandy Moeun | `712020:352984ab-b821-45ec-8f55-8d1b93415e73` |
-| Chhun Senghak | `712020:243c0a25-ea27-46de-a719-212c153bc21b` |
-| Hort Ranut | `712020:c974e22e-b20c-41da-90a2-e01e7c720cbb` |
-| **Mai Samorn** | *no account yet — invite, then fill in* |
-| **Chhim Kimheng** | *no account yet — invite, then fill in* |
+```sh
+curl -s -u "$JIRA_EMAIL:$JIRA_API_TOKEN" \
+  "$JIRA_BASE_URL/rest/api/3/user/assignable/search?project=AA&maxResults=100" \
+  | python -c "import sys,json;[print(u['accountId'],u['displayName']) for u in json.load(sys.stdin)]"
+```
 
-Members with an empty id import **unassigned** (with a warning); everything else
-still gets created.
+Fill the id for each CSV name (Rath, Mai Samorn, Chhun Senghak, Chandy Moeun,
+Chhim Kimheng, Hort Ranut). Members left blank import **unassigned** (with a
+warning); everything else still gets created.
 
 ## 4. Run
 
@@ -66,25 +64,19 @@ python docs/jira_push.py               # create for real
   exists (sub-tasks inherit their story's sprint).
 - **Idempotent:** searches by summary before creating, so re-runs don't duplicate.
 
-## Sprints first (KAN is a Kanban project)
-KAN ("Project Management") is Kanban, which has no sprints by default. Before the
-`Sprint` column means anything:
-1. **Project settings → Features → enable "Sprints"** (and "Backlog").
-2. Open **Backlog**, click **Create sprint**, then **••• → Edit sprint** and set
-   name / start / end / goal for each of the four — use the exact names in
-   `jira-sprints.csv` so the issue import matches them:
-   `Sprint 1 - Data Collection & Design`, `Sprint 2 - Implementation`,
-   `Sprint 3 - Testing`, `Sprint 4 - Deployment & Submission`.
-
-Then importing the issues (with the `Sprint` column mapped) drops each story into
-the matching sprint.
+## Sprints first (AA is Scrum — sprints are built in)
+Create the four sprints before running so the `Sprint` field resolves:
+open **Backlog → Create sprint** ×4, then **••• → Edit sprint** and set name /
+start / end / goal, using the exact names in `jira-sprints.csv`:
+`Sprint 1 - Data Collection & Design`, `Sprint 2 - Implementation`,
+`Sprint 3 - Testing`, `Sprint 4 - Deployment & Submission`.
 
 ## Board columns (one-time)
-A board column is backed by a workflow status. For the five named columns to
-exist, set the KAN board's columns to **Data Collection Backlog · Design ·
-Implementation · Testing · Deployment** (Board → ⋯ → Configure board → Columns)
-before running. Missing columns are reported and those sub-tasks stay in the
-default status; add the column and re-run.
+A board column is backed by a status. For the five named columns to exist, set the
+AA board's columns to **Data Collection Backlog · Design · Implementation ·
+Testing · Deployment** (Board → ⋯ → Configure board → Columns) before running.
+Missing columns are reported and those sub-tasks stay in the default status; add
+the column and re-run.
 
 ## Alternatives
 - **CSV import** of `jira-wbs.csv` or the per-person files — see

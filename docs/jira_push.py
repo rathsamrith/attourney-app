@@ -23,15 +23,16 @@ EMAIL   = os.environ.get("JIRA_EMAIL", "")
 TOKEN   = os.environ.get("JIRA_API_TOKEN", "")
 PROJECT = os.environ.get("JIRA_PROJECT_KEY", "")
 
-# Preferred: map each CSV assignee name to its Jira accountId (emails are often
-# hidden by privacy). Leave "" for members without an account yet -> unassigned.
+# Preferred: map each CSV assignee name to its Jira accountId on the target site
+# (kai-dev). Fill these in (see JIRA_PUSH.md for the lookup curl). Leave "" to
+# import that member's issues unassigned.
 MEMBER_ACCOUNT_IDS = {
-    "Rath":          "712020:9b91ce6c-dbb7-433f-9568-3cfdedf2ee68",
-    "Chandy Moeun":  "712020:352984ab-b821-45ec-8f55-8d1b93415e73",
-    "Chhun Senghak": "712020:243c0a25-ea27-46de-a719-212c153bc21b",
-    "Hort Ranut":    "712020:c974e22e-b20c-41da-90a2-e01e7c720cbb",
-    "Mai Samorn":    "",   # no Jira account yet -- invite them, then fill this in
-    "Chhim Kimheng": "",   # no Jira account yet -- invite them, then fill this in
+    "Rath":          "",
+    "Chandy Moeun":  "",
+    "Chhun Senghak": "",
+    "Hort Ranut":    "",
+    "Mai Samorn":    "",
+    "Chhim Kimheng": "",
 }
 # Fallback: name -> email (used only when the accountId above is empty).
 MEMBER_EMAILS = {}
