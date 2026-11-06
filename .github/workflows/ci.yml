@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend — lint, build, unit & e2e
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: attest
+          POSTGRES_PASSWORD: attest
+          POSTGRES_DB: attest
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U attest"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://attest:attest@localhost:5432/attest?schema=public
+      REDIS_URL: redis://localhost:6379
+      VOTE_ENCRYPTION_KEY: c8cd8bc52358b5a3cf688a77c048e52575de5d62e0fdd9552e5e0b6cf51a8bd0
+      ERRATA_WINDOW_DAYS: '30'
+      STORAGE_DIR: /tmp/attest-storage
+      LIVEKIT_URL: ws://localhost:7880
+      LIVEKIT_API_KEY: devkey
+      LIVEKIT_API_SECRET: attest-dev-livekit-secret-change-me-0000
+      OIDC_ISSUER: http://localhost:8080/realms/attest
+      OIDC_JWKS_URI: http://localhost:8080/realms/attest/protocol/openid-connect/certs
+      OIDC_AUDIENCE: attest-api
+      WEB_ORIGIN: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma migrate deploy
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+      - run: npm run test:e2e
+
+  frontend:
+    name: Frontend — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

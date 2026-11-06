@@ -1,0 +1,20 @@
+# Rebuilt inside the image
+node_modules
+dist
+src/generated
+*.tsbuildinfo
+
+# Local-only; compose supplies env to the container
+.env
+.env.local
+
+# Dev uploads and certified exports (a named volume holds these at runtime)
+storage
+
+# Tests and tooling not needed to run the API
+test
+coverage
+.claude
+.agents
+.windsurf
+skills-lock.json

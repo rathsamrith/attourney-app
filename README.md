@@ -73,6 +73,20 @@ After editing `infra/keycloak/attest-realm.json`, run `docker compose up -d --fo
 
 **Development fakes:** any PEM certificate passes; a face match passes unless you tick "Simulate a failed match" on the check-in screen. After three failed attempts, the record officer verifies the person manually from the check-in desk.
 
+**Production vendor adapters.** The provider interfaces in `backend/src/providers/providers.ts` resolve to real adapters (`providers/adapters.ts`) when configured, and to the dev fakes otherwise — no code change, set the environment variable:
+
+| Env var | Provider |
+| --- | --- |
+| `FACE_MATCH_URL` (`FACE_MATCH_API_KEY`) | HTTP biometric face-match service |
+| `CERT_CA_BUNDLE_PEM` or `CERT_VALIDATION=real` | X.509 validation (validity + chain) |
+| `SIGNING_PRIVATE_KEY_PEM` (`SIGNING_PUBLIC_KEY_PEM`) | RSA/EC/Ed25519 signer (HSM/KMS-ready) |
+| `TSA_URL` | RFC 3161 time-stamp authority |
+| `FILE_STORAGE_URL` (`FILE_STORAGE_TOKEN`) | S3-compatible object storage over HTTP |
+
+**Scheduling.** The record officer creates hearings via `POST /api/sessions` (single or a recurring series), opening a new matter or reusing one — see `/api/docs`.
+
+**CI.** `.github/workflows/ci.yml` runs lint, build, unit and e2e tests (with Postgres + Redis services) for the backend, and lint + build for the frontend, on every push and PR.
+
 **Without Docker**, `npx prisma dev` in `backend/` runs a local Postgres for migrations, seeding and tests. Sign-in still needs Keycloak.
 
 ## How the code is organized

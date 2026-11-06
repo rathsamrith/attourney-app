@@ -22,7 +22,12 @@ export class TokenVerifier {
   ) {
     this.issuer = config.getOrThrow<string>('OIDC_ISSUER');
     this.audience = config.getOrThrow<string>('OIDC_AUDIENCE');
-    this.jwks = createRemoteJWKSet(new URL(`${this.issuer}/protocol/openid-connect/certs`));
+    // The keys normally live at the issuer, but in some deployments (e.g. Docker, where
+    // the issuer is a browser-facing URL) the backend reaches the IdP at a different
+    // internal address. OIDC_JWKS_URI overrides where the keys are fetched from; the
+    // issuer claim is still validated against OIDC_ISSUER below.
+    const jwksUri = config.get<string>('OIDC_JWKS_URI') ?? `${this.issuer}/protocol/openid-connect/certs`;
+    this.jwks = createRemoteJWKSet(new URL(jwksUri));
   }
 
   async verify(token: string | undefined): Promise<AuthUser> {

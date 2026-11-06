@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Presence, Prisma, RecordState } from '../generated/prisma/client.js';
+import type { Presence, Prisma, RecordState, SessionRole } from '../generated/prisma/client.js';
+import type { AuditInput } from '../audit/audit.service.js';
 import { CommandRunner } from '../audit/command-runner.js';
 import type { AuthUser } from '../auth/current-user.js';
 import { BlockedException } from '../common/blocked.exception.js';
 import { loadSessionAccess, requireSessionRole } from '../common/session-access.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import type { SessionDetailDto, SessionSummaryDto } from './sessions.dto.js';
+import type { ScheduleResultDto, ScheduleSessionDto, SessionDetailDto, SessionSummaryDto } from './sessions.dto.js';
 import { RECORD_ACTIONS, swornSeconds, type RecordPoint } from './sworn-time.js';
 
 /** Allowed record-state moves. Closing is irreversible (data dictionary, sessions). */
@@ -107,6 +108,62 @@ export class SessionsService {
         sworn: p.sworn,
         swornSeconds: swornSeconds(p.presenceEvents, record, now),
       })),
+    };
+  }
+
+  /** Story "Schedule hearing/deposition": the record officer opens (or reuses) a matter and
+   *  creates one session or a recurring series, with its participants. */
+  async schedule(input: ScheduleSessionDto, user: AuthUser): Promise<ScheduleResultDto> {
+    if (!input.matterId && !input.matter) {
+      throw new BlockedException('Provide an existing matterId or a new matter to schedule.', { code: 'schedule.noMatter' });
+    }
+    const res = await this.commands.run(
+      async (tx) => {
+        const matter = input.matterId
+          ? await tx.matter.findUniqueOrThrow({ where: { id: input.matterId } })
+          : await tx.matter.create({ data: input.matter! });
+        const agg = await tx.session.aggregate({ where: { matterId: matter.id }, _max: { dayNo: true } });
+        let day = agg._max.dayNo ?? 0;
+        const count = input.recurrence?.count ?? 1;
+        const everyMs = (input.recurrence?.everyDays ?? 7) * 86_400_000;
+        let startsAt = new Date(input.startsAt);
+        const created = [];
+        for (let i = 0; i < count; i++) {
+          day += 1;
+          const session = await tx.session.create({ data: { matterId: matter.id, dayNo: day, startsAt } });
+          for (const p of input.participants) {
+            await tx.participant.create({
+              data: { sessionId: session.id, userId: p.userId, sessionRole: p.sessionRole as SessionRole },
+            });
+          }
+          created.push(session);
+          startsAt = new Date(startsAt.getTime() + everyMs);
+        }
+        return { matter, created, matterCreated: !input.matterId };
+      },
+      ({ matter, created, matterCreated }) => {
+        const events: AuditInput[] = [];
+        if (matterCreated) {
+          events.push({
+            entity: 'matter', entityId: matter.id, action: 'matter.opened',
+            matterId: matter.id, actorId: user.id, data: { docketNo: matter.docketNo, forum: matter.forum },
+          });
+        }
+        for (const s of created) {
+          events.push({
+            entity: 'session', entityId: s.id, action: 'session.scheduled',
+            matterId: matter.id, sessionId: s.id, actorId: user.id,
+            data: { dayNo: s.dayNo, startsAt: s.startsAt.toISOString() },
+          });
+        }
+        return events;
+      },
+    );
+    return {
+      matterId: res.matter.id,
+      docketNo: res.matter.docketNo,
+      matterCreated: res.matterCreated,
+      sessions: res.created.map((s) => ({ id: s.id, dayNo: s.dayNo, startsAt: s.startsAt.toISOString() })),
     };
   }
 

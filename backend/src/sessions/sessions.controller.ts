@@ -1,8 +1,15 @@
 import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common';
-import { ApiConflictResponse, ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ApiConflictResponse, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CurrentUser, type AuthUser } from '../auth/current-user.js';
 import { Roles } from '../auth/decorators.js';
-import { SessionDetailDto, SessionSummaryDto, SetPresenceDto, SetRecordStateDto } from './sessions.dto.js';
+import {
+  ScheduleResultDto,
+  ScheduleSessionDto,
+  SessionDetailDto,
+  SessionSummaryDto,
+  SetPresenceDto,
+  SetRecordStateDto,
+} from './sessions.dto.js';
 import { SessionsService } from './sessions.service.js';
 
 @Controller()
@@ -19,6 +26,15 @@ export class SessionsController {
   @ApiOkResponse({ type: SessionDetailDto })
   get(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: AuthUser) {
     return this.sessions.getForParticipant(id, user);
+  }
+
+  /** Story "Schedule hearing/deposition": the record officer creates a session or series. */
+  @Post('sessions')
+  @Roles('officer')
+  @HttpCode(201)
+  @ApiCreatedResponse({ type: ScheduleResultDto })
+  schedule(@Body() body: ScheduleSessionDto, @CurrentUser() user: AuthUser) {
+    return this.sessions.schedule(body, user);
   }
 
   @Post('sessions/:id/record-state')

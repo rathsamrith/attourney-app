@@ -161,6 +161,35 @@
         "tags": [
           "Sessions"
         ]
+      },
+      "post": {
+        "operationId": "sessionsSchedule",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResultDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Sessions"
+        ]
       }
     },
     "/api/sessions/{id}": {
@@ -1876,6 +1905,158 @@
           "mySessionRole",
           "myParticipantId",
           "participants"
+        ]
+      },
+      "NewMatterDto": {
+        "type": "object",
+        "properties": {
+          "caption": {
+            "type": "string"
+          },
+          "docketNo": {
+            "type": "string"
+          },
+          "forum": {
+            "type": "string",
+            "enum": [
+              "deposition",
+              "arbitration",
+              "regulatory"
+            ]
+          }
+        },
+        "required": [
+          "caption",
+          "docketNo",
+          "forum"
+        ]
+      },
+      "ScheduleParticipantDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "sessionRole": {
+            "type": "string",
+            "enum": [
+              "presiding",
+              "panelist",
+              "counsel",
+              "witness",
+              "officer",
+              "reporter"
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "sessionRole"
+        ]
+      },
+      "RecurrenceDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Number of sessions (days) to create."
+          },
+          "everyDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 90,
+            "description": "Days between sessions."
+          }
+        },
+        "required": [
+          "count",
+          "everyDays"
+        ]
+      },
+      "ScheduleSessionDto": {
+        "type": "object",
+        "properties": {
+          "matterId": {
+            "type": "string",
+            "description": "Existing matter to schedule under."
+          },
+          "matter": {
+            "description": "A new matter to open (when matterId is absent).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NewMatterDto"
+              }
+            ]
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "Start of the first session (ISO 8601)."
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleParticipantDto"
+            }
+          },
+          "recurrence": {
+            "description": "Create a recurring series instead of one session.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "startsAt",
+          "participants"
+        ]
+      },
+      "ScheduledSessionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "dayNo": {
+            "type": "number"
+          },
+          "startsAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "dayNo",
+          "startsAt"
+        ]
+      },
+      "ScheduleResultDto": {
+        "type": "object",
+        "properties": {
+          "matterId": {
+            "type": "string"
+          },
+          "docketNo": {
+            "type": "string"
+          },
+          "matterCreated": {
+            "type": "boolean"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledSessionDto"
+            }
+          }
+        },
+        "required": [
+          "matterId",
+          "docketNo",
+          "matterCreated",
+          "sessions"
         ]
       },
       "SetRecordStateDto": {
