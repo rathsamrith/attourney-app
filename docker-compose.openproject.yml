@@ -1,0 +1,39 @@
+# OpenProject Community — self-hosted project management for the Attest project.
+# Kept separate from the app stack so it can run on its own:
+#
+#   docker compose -f docker-compose.openproject.yml up -d
+#
+# First boot takes a few minutes (it migrates and seeds its own bundled database).
+# Then open http://localhost:8090 and sign in as  admin / admin  (you'll be asked to
+# set a new password on first login). Stop with:
+#   docker compose -f docker-compose.openproject.yml down
+# Add -v to that to also wipe all OpenProject data. Not for production.
+name: attest-pm
+
+services:
+  openproject:
+    image: openproject/openproject:16
+    environment:
+      # Public URL OpenProject generates links against.
+      OPENPROJECT_HOST__NAME: "localhost:8090"
+      OPENPROJECT_HTTPS: "false"
+      OPENPROJECT_DEFAULT__LANGUAGE: "en"
+      # Dev secret; replace for any shared/real deployment.
+      OPENPROJECT_SECRET_KEY_BASE: "attest-openproject-dev-secret-change-me-0000"
+    ports:
+      - "8090:80"
+    volumes:
+      # Bundled PostgreSQL data and uploaded files, so the project survives restarts.
+      - op_pgdata:/var/openproject/pgdata
+      - op_assets:/var/openproject/assets
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/health_checks/default || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+
+volumes:
+  op_pgdata:
+  op_assets:

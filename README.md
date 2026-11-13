@@ -10,6 +10,45 @@ Remote hearing management: check-in and identity verification, the live record, 
 
 Video runs through a LiveKit SFU; the API only issues room tokens. Vendor services (face match, certificate OCSP, HSM signing, RFC 3161 timestamps, object storage) sit behind interfaces in `backend/src/providers/` with development fakes and local-disk storage.
 
+## Run everything (Docker)
+
+One command builds and starts the whole system — Postgres, Redis, Keycloak, LiveKit, the API (migrated and seeded automatically) and the web app:
+
+```sh
+docker compose up -d --build        # first run builds the images; later runs: docker compose up -d
+```
+
+Then open **http://localhost:5173** and sign in with any dev user below (password `attest`). API docs are at http://localhost:3000/api/docs; Keycloak admin at http://localhost:8080 (`admin` / `admin`). Stop with `docker compose down` (add `-v` to also wipe the database and stored exports).
+
+The backend container applies migrations on every start and seeds the database once (when the `matters` table is empty). The token issuer is `http://localhost:8080` (what the browser uses); the backend validates that issuer but fetches Keycloak's signing keys over the internal network at `http://keycloak:8080` (`OIDC_JWKS_URI`), so no hosts-file setup is needed. This stack is for local use, not production.
+
+## Project management (OpenProject)
+
+A self-hosted OpenProject Community instance tracks the delivery work:
+
+```sh
+docker compose -f docker-compose.openproject.yml up -d     # http://localhost:8090 (admin / admin)
+```
+
+Seed the "Attest" project (6 members, 10 Epics, 10 User Stories, 30 Tasks across a 5-column board and 4 sprints), build the Sprint → Epic → User Story → Task hierarchy, and turn on the Scrum/Backlogs board. The scripts are idempotent:
+
+```sh
+docker compose -f docker-compose.openproject.yml cp docs/op_seed.rb      openproject:/tmp/op_seed.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_hierarchy.rb openproject:/tmp/op_hierarchy.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_backlogs.rb  openproject:/tmp/op_backlogs.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_board.rb     openproject:/tmp/op_board.rb
+docker compose -f docker-compose.openproject.yml cp docs/op_estimate.rb  openproject:/tmp/op_estimate.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_seed.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_hierarchy.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_backlogs.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_board.rb
+docker compose -f docker-compose.openproject.yml exec openproject bundle exec rails runner /tmp/op_estimate.rb
+```
+
+`op_board.rb` adds a 5-column "Attest Scrum Board" (a Basic board with one status-filtered list per column). `op_estimate.rb` sets estimated time on tasks and story points on user stories. If a member login ever fails, `op_fix_users.rb` re-sets the six member passwords.
+
+The same plan can be loaded into Jira as a 3-level breakdown — **Epic (module) → User Story (function) → Task (sub-task)**, 10 Epics / 50 User Stories / 250 Tasks. Bulk-import `docs/jira-wbs.csv` (or the per-person files in `docs/jira-split/`) via Jira's CSV importer, or push it over the Jira Cloud REST API with `docs/jira_push.py` (linked, assigned, estimated, sub-tasks moved into the 5 board columns — see `docs/JIRA_PUSH.md`). The earlier flat version (10 Epics + 30 Tasks) remains in `docs/jira-import.csv`.
+
 ## Run locally
 
 Needs Node 24+ and Docker Desktop (with WSL 2 on Windows).
@@ -33,6 +72,20 @@ Dev users (password `attest`): `sokha.prum` (record officer), `ruth.okafor` (pre
 After editing `infra/keycloak/attest-realm.json`, run `docker compose up -d --force-recreate keycloak`; Keycloak only imports the realm into a fresh container.
 
 **Development fakes:** any PEM certificate passes; a face match passes unless you tick "Simulate a failed match" on the check-in screen. After three failed attempts, the record officer verifies the person manually from the check-in desk.
+
+**Production vendor adapters.** The provider interfaces in `backend/src/providers/providers.ts` resolve to real adapters (`providers/adapters.ts`) when configured, and to the dev fakes otherwise — no code change, set the environment variable:
+
+| Env var | Provider |
+| --- | --- |
+| `FACE_MATCH_URL` (`FACE_MATCH_API_KEY`) | HTTP biometric face-match service |
+| `CERT_CA_BUNDLE_PEM` or `CERT_VALIDATION=real` | X.509 validation (validity + chain) |
+| `SIGNING_PRIVATE_KEY_PEM` (`SIGNING_PUBLIC_KEY_PEM`) | RSA/EC/Ed25519 signer (HSM/KMS-ready) |
+| `TSA_URL` | RFC 3161 time-stamp authority |
+| `FILE_STORAGE_URL` (`FILE_STORAGE_TOKEN`) | S3-compatible object storage over HTTP |
+
+**Scheduling.** The record officer creates hearings via `POST /api/sessions` (single or a recurring series), opening a new matter or reusing one — see `/api/docs`.
+
+**CI.** `.github/workflows/ci.yml` runs lint, build, unit and e2e tests (with Postgres + Redis services) for the backend, and lint + build for the frontend, on every push and PR.
 
 **Without Docker**, `npx prisma dev` in `backend/` runs a local Postgres for migrations, seeding and tests. Sign-in still needs Keycloak.
 
