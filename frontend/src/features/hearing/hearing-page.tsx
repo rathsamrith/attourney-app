@@ -14,6 +14,7 @@ import { ContinuancesPanel } from './continuances-panel'
 import { ObjectionsPanel } from './objections-panel'
 import { PublicationPanel } from './publication-panel'
 import { RecordControls } from './record-controls'
+import { RescheduleControl } from './reschedule-control'
 import { TranscriptPanel } from './transcript-panel'
 
 export function HearingPage() {
@@ -59,7 +60,10 @@ export function HearingPage() {
             </CardHeader>
             <CardContent>
               {s.mySessionRole === 'officer' ? (
-                <RecordControls sessionId={s.id} state={s.recordState} />
+                <div className="space-y-4">
+                  <RecordControls sessionId={s.id} state={s.recordState} />
+                  {s.recordState === 'off' && <RescheduleControl sessionId={s.id} startsAt={s.startsAt} />}
+                </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
                   {t('hearing.notOfficer', { role: t(`sessionRoles.${s.mySessionRole}`) })}

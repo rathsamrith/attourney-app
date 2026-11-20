@@ -79,6 +79,68 @@ export type SessionDetailDto = {
     participants: Array<ParticipantDto>;
 };
 
+export type NewMatterDto = {
+    caption: string;
+    docketNo: string;
+    forum: 'deposition' | 'arbitration' | 'regulatory';
+};
+
+export type ScheduleParticipantDto = {
+    userId: string;
+    sessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
+};
+
+export type RecurrenceDto = {
+    /**
+     * Number of sessions (days) to create.
+     */
+    count: number;
+    /**
+     * Days between sessions.
+     */
+    everyDays: number;
+};
+
+export type ScheduleSessionDto = {
+    /**
+     * Existing matter to schedule under.
+     */
+    matterId?: string;
+    /**
+     * A new matter to open (when matterId is absent).
+     */
+    matter?: NewMatterDto;
+    /**
+     * Start of the first session (ISO 8601).
+     */
+    startsAt: string;
+    participants: Array<ScheduleParticipantDto>;
+    /**
+     * Create a recurring series instead of one session.
+     */
+    recurrence?: RecurrenceDto;
+};
+
+export type ScheduledSessionDto = {
+    id: string;
+    dayNo: number;
+    startsAt: string;
+};
+
+export type ScheduleResultDto = {
+    matterId: string;
+    docketNo: string;
+    matterCreated: boolean;
+    sessions: Array<ScheduledSessionDto>;
+};
+
+export type RescheduleSessionDto = {
+    /**
+     * New start time for the hearing (ISO 8601). Same day, different time is fine.
+     */
+    startsAt: string;
+};
+
 export type SetRecordStateDto = {
     state: 'off' | 'open' | 'recess' | 'closed';
 };
@@ -479,6 +541,19 @@ export type SessionsListResponses = {
 
 export type SessionsListResponse = SessionsListResponses[keyof SessionsListResponses];
 
+export type SessionsScheduleData = {
+    body: ScheduleSessionDto;
+    path?: never;
+    query?: never;
+    url: '/api/sessions';
+};
+
+export type SessionsScheduleResponses = {
+    201: ScheduleResultDto;
+};
+
+export type SessionsScheduleResponse = SessionsScheduleResponses[keyof SessionsScheduleResponses];
+
 export type SessionsGetData = {
     body?: never;
     path: {
@@ -493,6 +568,28 @@ export type SessionsGetResponses = {
 };
 
 export type SessionsGetResponse = SessionsGetResponses[keyof SessionsGetResponses];
+
+export type SessionsRescheduleData = {
+    body: RescheduleSessionDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/sessions/{id}';
+};
+
+export type SessionsRescheduleErrors = {
+    /**
+     * Blocked, with the reason to show the user
+     */
+    409: unknown;
+};
+
+export type SessionsRescheduleResponses = {
+    200: ScheduledSessionDto;
+};
+
+export type SessionsRescheduleResponse = SessionsRescheduleResponses[keyof SessionsRescheduleResponses];
 
 export type SessionsSetRecordStateData = {
     body: SetRecordStateDto;

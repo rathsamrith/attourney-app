@@ -108,6 +108,12 @@ export class ScheduleSessionDto {
   recurrence?: RecurrenceDto;
 }
 
+export class RescheduleSessionDto {
+  @ApiProperty({ description: 'New start time for the hearing (ISO 8601). Same day, different time is fine.' })
+  @IsISO8601()
+  startsAt: string;
+}
+
 export class ScheduledSessionDto {
   @ApiProperty() id: string;
   @ApiProperty() dayNo: number;
