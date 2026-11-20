@@ -1,8 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
+import { createRemoteJWKSet, decodeJwt, jwtVerify, type JWTPayload } from 'jose';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { AuthUser } from './current-user.js';
+
+/** Issuer claim on the app JWTs minted by the demo OTP sign-in (see OtpService). */
+export const DEMO_ISSUER = 'attest-demo';
 
 /**
  * Verifies OIDC access tokens against the identity provider's published keys,
@@ -15,6 +18,8 @@ export class TokenVerifier {
   private readonly issuer: string;
   private readonly audience: string;
   private readonly jwks: ReturnType<typeof createRemoteJWKSet>;
+  private readonly otpEnabled: boolean;
+  private readonly demoSecret: Uint8Array;
 
   constructor(
     config: ConfigService,
@@ -28,6 +33,8 @@ export class TokenVerifier {
     // issuer claim is still validated against OIDC_ISSUER below.
     const jwksUri = config.get<string>('OIDC_JWKS_URI') ?? `${this.issuer}/protocol/openid-connect/certs`;
     this.jwks = createRemoteJWKSet(new URL(jwksUri));
+    this.otpEnabled = String(config.get('AUTH_MODE') ?? 'otp').toLowerCase() !== 'oidc';
+    this.demoSecret = new TextEncoder().encode(config.get<string>('OTP_JWT_SECRET') ?? 'attest-demo-otp-secret-change-me');
   }
 
   async verify(token: string | undefined): Promise<AuthUser> {
@@ -35,7 +42,12 @@ export class TokenVerifier {
 
     let payload: JWTPayload & { email?: string };
     try {
-      ({ payload } = await jwtVerify(token, this.jwks, { issuer: this.issuer, audience: this.audience }));
+      if (this.otpEnabled && this.isDemoToken(token)) {
+        // App JWT minted by the OTP sign-in, signed with our own symmetric key.
+        ({ payload } = await jwtVerify(token, this.demoSecret, { issuer: DEMO_ISSUER, audience: this.audience }));
+      } else {
+        ({ payload } = await jwtVerify(token, this.jwks, { issuer: this.issuer, audience: this.audience }));
+      }
     } catch {
       throw new UnauthorizedException('Your session has expired. Sign in again.');
     }
@@ -47,5 +59,14 @@ export class TokenVerifier {
       throw new UnauthorizedException('This account has no access to Attest.');
     }
     return { id: user.id, email: user.email, name: user.name, role: user.role, side: user.side };
+  }
+
+  /** True when the token's issuer claim marks it as a demo app JWT (checked unverified). */
+  private isDemoToken(token: string): boolean {
+    try {
+      return decodeJwt(token).iss === DEMO_ISSUER;
+    } catch {
+      return false;
+    }
   }
 }

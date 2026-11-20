@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   auditList,
+  authAuthConfig,
   authMe,
   checkinAdmit,
   checkinIdentity,
@@ -76,6 +77,16 @@ const T = { throwOnError: true } as const
 
 export function useMe(enabled = true) {
   return useQuery({ queryKey: keys.me, queryFn: async () => (await authMe(T)).data, enabled, retry: false })
+}
+
+/** Whether the demo OTP sign-in is on, and the demo accounts to show. Fetched once. */
+export function useAuthConfig() {
+  return useQuery({
+    queryKey: ['authConfig'] as const,
+    queryFn: async () => (await authAuthConfig(T)).data,
+    staleTime: Infinity,
+    retry: false,
+  })
 }
 
 export function useSessions() {

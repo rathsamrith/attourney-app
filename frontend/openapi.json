@@ -90,6 +90,82 @@
         ]
       }
     },
+    "/api/auth/config": {
+      "get": {
+        "operationId": "authAuthConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthConfigDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/otp/request": {
+      "post": {
+        "operationId": "authRequestOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/otp/verify": {
+      "post": {
+        "operationId": "authVerifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpTokenDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/me": {
       "get": {
         "operationId": "authMe",
@@ -1658,6 +1734,92 @@
           "sessionId",
           "actorName",
           "hash"
+        ]
+      },
+      "DemoUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "role",
+          "side"
+        ]
+      },
+      "AuthConfigDto": {
+        "type": "object",
+        "properties": {
+          "otp": {
+            "type": "boolean",
+            "description": "When true, sign in with an emailed one-time code; when false, use the OIDC provider."
+          },
+          "showCredentials": {
+            "type": "boolean",
+            "description": "When true, the sign-in screen may list the seeded test accounts."
+          },
+          "demoUsers": {
+            "description": "Seeded test accounts, shown as role → credentials.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DemoUserDto"
+            }
+          }
+        },
+        "required": [
+          "otp",
+          "showCredentials",
+          "demoUsers"
+        ]
+      },
+      "OtpRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "OtpVerifyDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "The 6-digit code from the email."
+          }
+        },
+        "required": [
+          "email",
+          "code"
+        ]
+      },
+      "OtpTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
         ]
       },
       "ScreenAccessDto": {
