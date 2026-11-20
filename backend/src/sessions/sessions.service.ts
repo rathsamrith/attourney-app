@@ -7,7 +7,13 @@ import type { AuthUser } from '../auth/current-user.js';
 import { BlockedException } from '../common/blocked.exception.js';
 import { loadSessionAccess, requireSessionRole } from '../common/session-access.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import type { ScheduleResultDto, ScheduleSessionDto, SessionDetailDto, SessionSummaryDto } from './sessions.dto.js';
+import type {
+  ScheduledSessionDto,
+  ScheduleResultDto,
+  ScheduleSessionDto,
+  SessionDetailDto,
+  SessionSummaryDto,
+} from './sessions.dto.js';
 import { RECORD_ACTIONS, swornSeconds, type RecordPoint } from './sworn-time.js';
 
 /** Allowed record-state moves. Closing is irreversible (data dictionary, sessions). */
@@ -165,6 +171,38 @@ export class SessionsService {
       matterCreated: res.matterCreated,
       sessions: res.created.map((s) => ({ id: s.id, dayNo: s.dayNo, startsAt: s.startsAt.toISOString() })),
     };
+  }
+
+  /** Story "Reschedule hearing": the record officer moves a session's start time.
+   *  Two hearings on the same day are just two sessions with different start times;
+   *  this changes one session's time, allowed only before it goes on the record. */
+  async reschedule(sessionId: string, startsAt: string, user: AuthUser): Promise<ScheduledSessionDto> {
+    const { updated } = await this.commands.run(
+      async (tx) => {
+        const { session, me } = await loadSessionAccess(tx, sessionId, user);
+        requireSessionRole(me, ['officer'], 'Rescheduling the hearing');
+        if (session.recordState !== 'off') {
+          throw new BlockedException(
+            session.recordState === 'closed'
+              ? 'This session is closed and cannot be rescheduled.'
+              : 'A hearing that is on the record cannot be rescheduled. Take it off the record first.',
+            { code: 'reschedule.notOff', params: { state: session.recordState } },
+          );
+        }
+        const next = await tx.session.update({ where: { id: sessionId }, data: { startsAt: new Date(startsAt) } });
+        return { updated: next, from: session.startsAt };
+      },
+      ({ updated, from }) => ({
+        entity: 'session',
+        entityId: updated.id,
+        action: 'session.rescheduled',
+        matterId: updated.matterId,
+        sessionId: updated.id,
+        actorId: user.id,
+        data: { from: from.toISOString(), to: updated.startsAt.toISOString() },
+      }),
+    );
+    return { id: updated.id, dayNo: updated.dayNo, startsAt: updated.startsAt.toISOString() };
   }
 
   /** Story "Record state": the record officer takes the session on and off the record. */

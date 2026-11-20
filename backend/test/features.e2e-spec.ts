@@ -282,6 +282,29 @@ describe('Attest features (e2e)', () => {
     });
   });
 
+  describe('rescheduling a hearing', () => {
+    it('lets the record officer move the start time before it goes on the record', async () => {
+      const h2 = await createHearing(prisma);
+      const when = '2026-12-01T14:30:00.000Z';
+      const res = await as('officer').patch(`/sessions/${h2.session.id}`, { startsAt: when }).expect(200);
+      expect(res.body.startsAt).toBe(when);
+      const reloaded = await as('officer').get(`/sessions/${h2.session.id}`).expect(200);
+      expect(reloaded.body.startsAt).toBe(when);
+    });
+
+    it('refuses anyone but the record officer', async () => {
+      const h2 = await createHearing(prisma);
+      await as('counselP').patch(`/sessions/${h2.session.id}`, { startsAt: '2026-12-02T09:00:00.000Z' }).expect(403);
+    });
+
+    it('blocks rescheduling once the hearing is on the record', async () => {
+      const h2 = await createHearing(prisma);
+      await as('officer').post(`/sessions/${h2.session.id}/record-state`, { state: 'open' }).expect(204);
+      const blocked = await as('officer').patch(`/sessions/${h2.session.id}`, { startsAt: '2026-12-03T09:00:00.000Z' }).expect(409);
+      expect(blocked.body.code).toBe('reschedule.notOff');
+    });
+  });
+
   describe('E6 docket and E7 notifications', () => {
     it('shows the officer the week with sealing status, and refuses counsel', async () => {
       const week = (await as('officer').get(`/docket?weekOf=${new Date().toISOString().slice(0, 10)}`).expect(200)).body;

@@ -44,6 +44,7 @@ import {
   recordStatus,
   sessionsGet,
   sessionsList,
+  sessionsReschedule,
   sessionsSetPresence,
   sessionsSetRecordState,
 } from './generated'
@@ -144,6 +145,8 @@ function useSessionCommand<V, R>(sessionId: string | undefined, fn: (v: V) => Pr
 
 export const useSetRecordState = (sid: string) =>
   useSessionCommand(sid, (state: SetRecordStateDto['state']) => sessionsSetRecordState({ path: { id: sid }, body: { state }, ...T }))
+export const useRescheduleSession = (sid: string) =>
+  useSessionCommand(sid, (startsAt: string) => sessionsReschedule({ path: { id: sid }, body: { startsAt }, ...T }))
 export const useSetPresence = (sid: string) =>
   useSessionCommand(sid, (v: { participantId: string; state: SetPresenceDto['state'] }) =>
     sessionsSetPresence({ path: { id: v.participantId }, body: { state: v.state }, ...T }),

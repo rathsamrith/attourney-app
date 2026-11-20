@@ -220,6 +220,47 @@
         "tags": [
           "Sessions"
         ]
+      },
+      "patch": {
+        "operationId": "sessionsReschedule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledSessionDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Blocked, with the reason to show the user"
+          }
+        },
+        "tags": [
+          "Sessions"
+        ]
       }
     },
     "/api/sessions/{id}/record-state": {
@@ -2057,6 +2098,18 @@
           "docketNo",
           "matterCreated",
           "sessions"
+        ]
+      },
+      "RescheduleSessionDto": {
+        "type": "object",
+        "properties": {
+          "startsAt": {
+            "type": "string",
+            "description": "New start time for the hearing (ISO 8601). Same day, different time is fine."
+          }
+        },
+        "required": [
+          "startsAt"
         ]
       },
       "SetRecordStateDto": {

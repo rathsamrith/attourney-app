@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ApiConflictResponse, ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse } from '@nestjs/swagger';
 import { CurrentUser, type AuthUser } from '../auth/current-user.js';
 import { Roles } from '../auth/decorators.js';
 import {
+  RescheduleSessionDto,
+  ScheduledSessionDto,
   ScheduleResultDto,
   ScheduleSessionDto,
   SessionDetailDto,
@@ -35,6 +37,19 @@ export class SessionsController {
   @ApiCreatedResponse({ type: ScheduleResultDto })
   schedule(@Body() body: ScheduleSessionDto, @CurrentUser() user: AuthUser) {
     return this.sessions.schedule(body, user);
+  }
+
+  /** Story "Reschedule hearing": the record officer moves a session's start time. */
+  @Patch('sessions/:id')
+  @Roles('officer')
+  @ApiOkResponse({ type: ScheduledSessionDto })
+  @ApiConflictResponse({ description: 'Blocked, with the reason to show the user' })
+  reschedule(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: RescheduleSessionDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.sessions.reschedule(id, body.startsAt, user);
   }
 
   @Post('sessions/:id/record-state')
