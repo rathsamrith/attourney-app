@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { AuditListData, AuditListResponses, AuthMeData, AuthMeResponses, AuthSignedInData, AuthSignedInResponses, AuthSignedOutData, AuthSignedOutResponses, CheckinAdmitData, CheckinAdmitResponses, CheckinIdentityData, CheckinIdentityResponses, CheckinManualData, CheckinManualResponses, CheckinOathData, CheckinOathResponses, CheckinQueueData, CheckinQueueResponses, CheckinStatusData, CheckinStatusResponses, DeliberationCastData, DeliberationCastResponses, DeliberationSealData, DeliberationSealResponses, DeliberationStateData, DeliberationStateResponses, DocketMetricsData, DocketMetricsResponses, DocketWeekData, DocketWeekResponses, ExhibitsCurrentData, ExhibitsCurrentResponses, ExhibitsFileData, ExhibitsFileResponses, ExhibitsListData, ExhibitsListResponses, ExhibitsOfferData, ExhibitsOfferResponses, ExhibitsPublishData, ExhibitsPublishResponses, ExhibitsRuleData, ExhibitsRuleResponses, ExhibitsTagData, ExhibitsTagResponses, ExhibitsUnpublishData, ExhibitsUnpublishResponses, HealthCheckData, HealthCheckResponses, NotificationsListData, NotificationsListResponses, ProceedingAddLineData, ProceedingAddLineResponses, ProceedingCloseCaucusData, ProceedingCloseCaucusResponses, ProceedingCorrectLineData, ProceedingCorrectLineResponses, ProceedingJoinCaucusData, ProceedingJoinCaucusResponses, ProceedingLeaveCaucusData, ProceedingLeaveCaucusResponses, ProceedingListCaucusData, ProceedingListCaucusResponses, ProceedingListContinuancesData, ProceedingListContinuancesResponses, ProceedingListObjectionsData, ProceedingListObjectionsResponses, ProceedingListTranscriptData, ProceedingListTranscriptResponses, ProceedingMediaTokenData, ProceedingMediaTokenResponses, ProceedingOpenCaucusData, ProceedingOpenCaucusResponses, ProceedingRaiseObjectionData, ProceedingRaiseObjectionResponses, ProceedingRequestContinuanceData, ProceedingRequestContinuanceResponses, ProceedingRuleContinuanceData, ProceedingRuleContinuanceResponses, ProceedingRuleObjectionData, ProceedingRuleObjectionResponses, RecordCloseWindowData, RecordCloseWindowResponses, RecordDecideData, RecordDecideResponses, RecordDownloadData, RecordDownloadResponses, RecordExportData, RecordExportResponses, RecordFileData, RecordFileResponses, RecordLockData, RecordLockResponses, RecordStatusData, RecordStatusResponses, SessionsGetData, SessionsGetResponses, SessionsListData, SessionsListResponses, SessionsRescheduleData, SessionsRescheduleErrors, SessionsRescheduleResponses, SessionsScheduleData, SessionsScheduleResponses, SessionsSetPresenceData, SessionsSetPresenceResponses, SessionsSetRecordStateData, SessionsSetRecordStateErrors, SessionsSetRecordStateResponses } from './types.gen';
+import type { AuditListData, AuditListResponses, AuthAuthConfigData, AuthAuthConfigResponses, AuthMeData, AuthMeResponses, AuthRequestOtpData, AuthRequestOtpResponses, AuthSignedInData, AuthSignedInResponses, AuthSignedOutData, AuthSignedOutResponses, AuthVerifyOtpData, AuthVerifyOtpResponses, CheckinAdmitData, CheckinAdmitResponses, CheckinIdentityData, CheckinIdentityResponses, CheckinManualData, CheckinManualResponses, CheckinOathData, CheckinOathResponses, CheckinQueueData, CheckinQueueResponses, CheckinStatusData, CheckinStatusResponses, DeliberationCastData, DeliberationCastResponses, DeliberationSealData, DeliberationSealResponses, DeliberationStateData, DeliberationStateResponses, DocketMetricsData, DocketMetricsResponses, DocketWeekData, DocketWeekResponses, ExhibitsCurrentData, ExhibitsCurrentResponses, ExhibitsFileData, ExhibitsFileResponses, ExhibitsListData, ExhibitsListResponses, ExhibitsOfferData, ExhibitsOfferResponses, ExhibitsPublishData, ExhibitsPublishResponses, ExhibitsRuleData, ExhibitsRuleResponses, ExhibitsTagData, ExhibitsTagResponses, ExhibitsUnpublishData, ExhibitsUnpublishResponses, HealthCheckData, HealthCheckResponses, NotificationsListData, NotificationsListResponses, ProceedingAddLineData, ProceedingAddLineResponses, ProceedingCloseCaucusData, ProceedingCloseCaucusResponses, ProceedingCorrectLineData, ProceedingCorrectLineResponses, ProceedingJoinCaucusData, ProceedingJoinCaucusResponses, ProceedingLeaveCaucusData, ProceedingLeaveCaucusResponses, ProceedingListCaucusData, ProceedingListCaucusResponses, ProceedingListContinuancesData, ProceedingListContinuancesResponses, ProceedingListObjectionsData, ProceedingListObjectionsResponses, ProceedingListTranscriptData, ProceedingListTranscriptResponses, ProceedingMediaTokenData, ProceedingMediaTokenResponses, ProceedingOpenCaucusData, ProceedingOpenCaucusResponses, ProceedingRaiseObjectionData, ProceedingRaiseObjectionResponses, ProceedingRequestContinuanceData, ProceedingRequestContinuanceResponses, ProceedingRuleContinuanceData, ProceedingRuleContinuanceResponses, ProceedingRuleObjectionData, ProceedingRuleObjectionResponses, RecordCloseWindowData, RecordCloseWindowResponses, RecordDecideData, RecordDecideResponses, RecordDownloadData, RecordDownloadResponses, RecordExportData, RecordExportResponses, RecordFileData, RecordFileResponses, RecordLockData, RecordLockResponses, RecordStatusData, RecordStatusResponses, SessionsGetData, SessionsGetResponses, SessionsListData, SessionsListResponses, SessionsRescheduleData, SessionsRescheduleErrors, SessionsRescheduleResponses, SessionsScheduleData, SessionsScheduleResponses, SessionsSetPresenceData, SessionsSetPresenceResponses, SessionsSetRecordStateData, SessionsSetRecordStateErrors, SessionsSetRecordStateResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -34,6 +34,32 @@ export const auditList = <ThrowOnError extends boolean = false>(options?: Option
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/audit',
     ...options
+});
+
+export const authAuthConfig = <ThrowOnError extends boolean = false>(options?: Options<AuthAuthConfigData, ThrowOnError>): RequestResult<AuthAuthConfigResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AuthAuthConfigResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/auth/config',
+    ...options
+});
+
+export const authRequestOtp = <ThrowOnError extends boolean = false>(options: Options<AuthRequestOtpData, ThrowOnError>): RequestResult<AuthRequestOtpResponses, unknown, ThrowOnError> => (options.client ?? client).post<AuthRequestOtpResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/auth/otp/request',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const authVerifyOtp = <ThrowOnError extends boolean = false>(options: Options<AuthVerifyOtpData, ThrowOnError>): RequestResult<AuthVerifyOtpResponses, unknown, ThrowOnError> => (options.client ?? client).post<AuthVerifyOtpResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/auth/otp/verify',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 export const authMe = <ThrowOnError extends boolean = false>(options?: Options<AuthMeData, ThrowOnError>): RequestResult<AuthMeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AuthMeResponses, unknown, ThrowOnError>({

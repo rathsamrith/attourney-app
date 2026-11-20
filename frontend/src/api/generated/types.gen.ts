@@ -22,6 +22,44 @@ export type AuditEntryDto = {
     hash: string;
 };
 
+export type DemoUserDto = {
+    email: string;
+    name: string;
+    role: string;
+    side: string;
+};
+
+export type AuthConfigDto = {
+    /**
+     * When true, sign in with an emailed one-time code; when false, use the OIDC provider.
+     */
+    otp: boolean;
+    /**
+     * When true, the sign-in screen may list the seeded test accounts.
+     */
+    showCredentials: boolean;
+    /**
+     * Seeded test accounts, shown as role → credentials.
+     */
+    demoUsers: Array<DemoUserDto>;
+};
+
+export type OtpRequestDto = {
+    email: string;
+};
+
+export type OtpVerifyDto = {
+    email: string;
+    /**
+     * The 6-digit code from the email.
+     */
+    code: string;
+};
+
+export type OtpTokenDto = {
+    token: string;
+};
+
 export type ScreenAccessDto = {
     screen: 'checkin' | 'hearing' | 'exhibits' | 'caucus' | 'deliberation' | 'sealing' | 'docket' | 'audit';
     allowed: boolean;
@@ -488,6 +526,45 @@ export type AuditListResponses = {
 };
 
 export type AuditListResponse = AuditListResponses[keyof AuditListResponses];
+
+export type AuthAuthConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/config';
+};
+
+export type AuthAuthConfigResponses = {
+    200: AuthConfigDto;
+};
+
+export type AuthAuthConfigResponse = AuthAuthConfigResponses[keyof AuthAuthConfigResponses];
+
+export type AuthRequestOtpData = {
+    body: OtpRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/request';
+};
+
+export type AuthRequestOtpResponses = {
+    204: void;
+};
+
+export type AuthRequestOtpResponse = AuthRequestOtpResponses[keyof AuthRequestOtpResponses];
+
+export type AuthVerifyOtpData = {
+    body: OtpVerifyDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/otp/verify';
+};
+
+export type AuthVerifyOtpResponses = {
+    200: OtpTokenDto;
+};
+
+export type AuthVerifyOtpResponse = AuthVerifyOtpResponses[keyof AuthVerifyOtpResponses];
 
 export type AuthMeData = {
     body?: never;

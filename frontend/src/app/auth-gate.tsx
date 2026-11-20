@@ -1,14 +1,25 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useTranslation } from 'react-i18next'
 import { describeError, setAccessToken } from '@/api/client'
 import { authSignedIn } from '@/api/generated'
-import { useMe } from '@/api/queries'
+import { useAuthConfig, useMe } from '@/api/queries'
 import { LanguageSwitcher } from '@/components/attest/language-switcher'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MeProvider } from './context'
+import { DemoLogin } from './demo-login'
+
+const DEMO_TOKEN_KEY = 'attest.demoToken'
+
+function readDemoToken(): string | undefined {
+  try {
+    return localStorage.getItem(DEMO_TOKEN_KEY) ?? undefined
+  } catch {
+    return undefined
+  }
+}
 
 function CenteredCard({ title, description, action }: { title: string; description: string; action?: ReactNode }) {
   const { t } = useTranslation()
@@ -29,8 +40,59 @@ function CenteredCard({ title, description, action }: { title: string; descripti
   )
 }
 
-/** Signs the user in with the identity provider, then loads their Attest account and role. */
+/** Picks the sign-in flow: emailed one-time code (demo) or the OIDC provider (default). */
 export function AuthGate({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+  const config = useAuthConfig()
+
+  if (config.isPending) {
+    return <CenteredCard title={t('auth.signingInTitle')} description={t('auth.signingInDescription')} />
+  }
+  return config.data?.otp === true ? <OtpGate>{children}</OtpGate> : <OidcGate>{children}</OidcGate>
+}
+
+/** OTP flow: hold the app token from the one-time-code sign-in, then load the account. */
+function OtpGate({ children }: { children: ReactNode }) {
+  const config = useAuthConfig()
+  const [token, setToken] = useState<string | undefined>(() => readDemoToken())
+  setAccessToken(token)
+
+  if (!token) {
+    return (
+      <DemoLogin
+        demoUsers={config.data?.demoUsers ?? []}
+        showCredentials={config.data?.showCredentials ?? false}
+        onToken={(tk) => {
+          try {
+            localStorage.setItem(DEMO_TOKEN_KEY, tk)
+          } catch {
+            /* storage unavailable: keep it in memory only */
+          }
+          setAccessToken(tk)
+          setToken(tk)
+        }}
+      />
+    )
+  }
+
+  const signOut = () => {
+    try {
+      localStorage.removeItem(DEMO_TOKEN_KEY)
+    } catch {
+      /* ignore */
+    }
+    setAccessToken(undefined)
+    setToken(undefined)
+  }
+  return (
+    <LoadedAccount sessionKey={`demo:${token.slice(-16)}`} onSignOut={signOut}>
+      {children}
+    </LoadedAccount>
+  )
+}
+
+/** Default flow: sign in with the OIDC provider, then load the account. */
+function OidcGate({ children }: { children: ReactNode }) {
   const auth = useAuth()
   const { t } = useTranslation()
   // Keep the API client's token in step with the OIDC session before any query runs.
@@ -61,10 +123,17 @@ export function AuthGate({ children }: { children: ReactNode }) {
       />
     )
   }
-  return <AccountGate>{children}</AccountGate>
+  return (
+    <LoadedAccount
+      sessionKey={auth.user?.session_state ?? auth.user?.profile.sid}
+      onSignOut={() => void auth.signoutRedirect()}
+    >
+      {children}
+    </LoadedAccount>
+  )
 }
 
-/** Reports each sign-in to the audit trail once per identity-provider session. */
+/** Reports each sign-in to the audit trail once per session. */
 function useReportSignIn(ready: boolean, sessionKey: string | undefined) {
   useEffect(() => {
     if (!ready || !sessionKey) return
@@ -79,11 +148,19 @@ function useReportSignIn(ready: boolean, sessionKey: string | undefined) {
   }, [ready, sessionKey])
 }
 
-function AccountGate({ children }: { children: ReactNode }) {
-  const auth = useAuth()
+/** Loads the Attest account for whichever sign-in flow produced the token. */
+function LoadedAccount({
+  sessionKey,
+  onSignOut,
+  children,
+}: {
+  sessionKey: string | undefined
+  onSignOut: () => void
+  children: ReactNode
+}) {
   const { t } = useTranslation()
   const me = useMe()
-  useReportSignIn(me.isSuccess, auth.user?.session_state ?? auth.user?.profile.sid)
+  useReportSignIn(me.isSuccess, sessionKey)
 
   if (me.isPending) {
     return (
@@ -101,7 +178,7 @@ function AccountGate({ children }: { children: ReactNode }) {
         title={t('auth.noAccessTitle')}
         description={describeError(me.error)}
         action={
-          <Button variant="outline" onClick={() => void auth.signoutRedirect()}>
+          <Button variant="outline" onClick={onSignOut}>
             {t('common.signOut')}
           </Button>
         }

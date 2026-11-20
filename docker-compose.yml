@@ -2,14 +2,16 @@
 #
 #   docker compose up -d --build
 #
-# Then open http://localhost:5173 and sign in with any dev user below
-# (all passwords are "attest"):
-#   sokha.prum (record officer) · ruth.okafor (presiding) · wei.chen / h.albrecht
-#   (panelists) · maya.lindqvist (plaintiff counsel) · daniel.osei (defense counsel)
-#   · jordan.reyes (witness) · dara.kim (court reporter)
+# Then open http://localhost:5173. This stack runs in DEMO sign-in mode: pick a role
+# on the sign-in screen (or type an email), get a one-time code by email, and enter it.
+# The email is caught by MailHog — open the inbox at http://localhost:8025.
+# Demo accounts: sokha.prum (record officer) · ruth.okafor (presiding) · wei.chen /
+#   h.albrecht (panelists) · maya.lindqvist (plaintiff counsel) · daniel.osei (defense
+#   counsel) · jordan.reyes (witness) · dara.kim (court reporter)  — all @attest.local.
+# Set DEMO_AUTH=false on the backend to use the Keycloak password flow instead.
 #
 # API: http://localhost:3000/api  ·  API docs: http://localhost:3000/api/docs
-# Keycloak admin: http://localhost:8080  (admin / admin)
+# MailHog inbox: http://localhost:8025  ·  Keycloak admin: http://localhost:8080 (admin/admin)
 #
 # NOTE: The token issuer is http://localhost:8080 (what the browser uses). The backend
 # validates that issuer but fetches Keycloak's signing keys over the internal network
@@ -55,6 +57,11 @@ services:
     ports: ["8080:8080"]
     volumes: ["./infra/keycloak:/opt/keycloak/data/import:ro"]
 
+  # Mail catcher for the demo OTP sign-in. SMTP on 1025, web inbox on 8025.
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports: ["1025:1025", "8025:8025"]
+
   # SFU for hearing and caucus video. Dev mode; keys match the backend below.
   # Media never passes through the API, and no recording is configured.
   livekit:
@@ -74,6 +81,8 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_started
+      mailhog:
+        condition: service_started
     environment:
       DATABASE_URL: "postgresql://attest:attest@postgres:5432/attest?schema=public"
       REDIS_URL: "redis://redis:6379"
@@ -86,6 +95,14 @@ services:
       VOTE_ENCRYPTION_KEY: "c8cd8bc52358b5a3cf688a77c048e52575de5d62e0fdd9552e5e0b6cf51a8bd0"
       STORAGE_DIR: "/app/storage"
       ERRATA_WINDOW_DAYS: "30"
+      # Sign-in flow: "otp" = emailed one-time code (default), "oidc" = Keycloak password.
+      AUTH_MODE: "otp"
+      # Show the seeded test accounts on the sign-in screen (set false to hide them).
+      SHOW_TEST_CREDENTIALS: "true"
+      OTP_JWT_SECRET: "attest-demo-otp-secret-change-me-0000"
+      SMTP_HOST: "mailhog"
+      SMTP_PORT: "1025"
+      MAIL_FROM: "Attest <no-reply@attest.local>"
       # The browser connects to LiveKit directly, so this stays host-facing.
       LIVEKIT_URL: "ws://localhost:7880"
       LIVEKIT_API_KEY: "devkey"
