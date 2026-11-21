@@ -43,6 +43,7 @@ export class OtpService implements OnModuleInit {
   private readonly audience: string;
   private readonly mailer: Transporter;
   private readonly mailFrom: string;
+  private readonly webOrigin: string;
 
   constructor(
     config: ConfigService,
@@ -54,6 +55,7 @@ export class OtpService implements OnModuleInit {
     this.secret = new TextEncoder().encode(config.get<string>('OTP_JWT_SECRET') ?? 'attest-demo-otp-secret-change-me');
     this.audience = config.getOrThrow<string>('OIDC_AUDIENCE');
     this.mailFrom = config.get<string>('MAIL_FROM') ?? 'Attest <no-reply@attest.local>';
+    this.webOrigin = config.get<string>('WEB_ORIGIN') ?? 'http://localhost:5173';
 
     // SMTP transport. With no SMTP_USER it talks plainly to MailHog in dev; set
     // SMTP_HOST/PORT/SECURE/USER/PASS for a real provider (587 STARTTLS or 465 TLS).
@@ -94,6 +96,37 @@ export class OtpService implements OnModuleInit {
     }
   }
 
+  /** Email a newly created user that they have access, and how to sign in. Best-effort. */
+  async sendWelcome(email: string, name: string, role: string): Promise<void> {
+    const how =
+      role === 'admin'
+        ? 'Use the “Administrator sign-in” link and the password set by your administrator.'
+        : 'Enter your email and we will send you a one-time sign-in code.';
+    const htmlHow =
+      role === 'admin'
+        ? 'Use the <b>Administrator sign-in</b> link and the password set by your administrator.'
+        : 'Enter your email and we will send you a one-time sign-in code.';
+    await this.mailer.sendMail({
+      from: this.mailFrom,
+      to: email,
+      subject: 'You have been added to Attest',
+      text:
+        `Hello ${name},\n\n` +
+        `An account has been created for you on Attest.\n` +
+        `Sign in at ${this.webOrigin}\n${how}\n\n` +
+        `Attest - Remote hearing platform\n`,
+      html:
+        `<div style="font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden">` +
+        `<div style="background:#111a2e;padding:20px 28px"><span style="color:#d9a94a;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase">Attest</span></div>` +
+        `<div style="padding:28px;color:#14213d">` +
+        `<h1 style="margin:0 0 8px;font-size:20px">Welcome to Attest</h1>` +
+        `<p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#4a5568">Hello ${name.replace(/[&<>]/g, '')}, an account has been created for you.</p>` +
+        `<p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#4a5568">${htmlHow}</p>` +
+        `<a href="${this.webOrigin}" style="display:inline-block;background:#111a2e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-size:14px">Open Attest</a>` +
+        `</div></div>`,
+    });
+  }
+
   /** Sign a short-lived app JWT the guard accepts (shared by OTP and admin sign-in). */
   private issueToken(user: User): Promise<string> {
     return new SignJWT({ email: user.email })
@@ -118,7 +151,11 @@ export class OtpService implements OnModuleInit {
   /** The seeded accounts, shown as "role → credentials" on the sign-in screen (test helper). */
   async demoUsers(): Promise<DemoUser[]> {
     if (!this.showCredentials) return [];
-    const users = await this.prisma.user.findMany({ where: { deactivatedAt: null }, orderBy: { role: 'asc' } });
+    // Admins sign in by password, not OTP, so they are not listed on the code panel.
+    const users = await this.prisma.user.findMany({
+      where: { deactivatedAt: null, role: { not: 'admin' } },
+      orderBy: { role: 'asc' },
+    });
     return users.map((u) => ({ email: u.email, name: u.name, role: u.role, side: u.side }));
   }
 

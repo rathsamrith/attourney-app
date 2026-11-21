@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   adminCreate,
+  adminCreateCase,
   adminList,
+  adminListCases,
   adminUpdate,
   auditList,
   authAuthConfig,
@@ -57,6 +59,7 @@ import type {
   CastBallotDto,
   CreateUserDto,
   UpdateUserDto,
+  ScheduleSessionDto,
   FileErratumDto,
   IdentityAttemptDto,
   RaiseObjectionDto,
@@ -103,6 +106,18 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: (v: { id: string; body: UpdateUserDto }) => adminUpdate({ path: { id: v.id }, body: v.body, ...T }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  })
+}
+
+export function useAdminCases() {
+  return useQuery({ queryKey: ['admin', 'cases'] as const, queryFn: async () => (await adminListCases(T)).data })
+}
+
+export function useCreateCase() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: ScheduleSessionDto) => adminCreateCase({ body, ...T }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'cases'] }),
   })
 }
 

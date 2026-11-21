@@ -18,7 +18,8 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 COPY prisma.config.ts tsconfig.json tsconfig.build.json nest-cli.json ./
 # `npm ci` is a clean, lockfile-exact install; postinstall runs `prisma generate`.
-RUN npm ci --no-audit --no-fund
+# Retry/timeout flags make it resilient to flaky networks (ECONNRESET during fetch).
+RUN npm ci --no-audit --no-fund --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 --fetch-timeout=600000
 COPY src ./src
 RUN npm run build
 
