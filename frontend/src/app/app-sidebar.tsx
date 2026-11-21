@@ -35,8 +35,9 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>{t('nav.screens')}</SidebarGroupLabel>
           <SidebarMenu>
+            {/* Only show screens the user can access; blocked ones are hidden. */}
             {me.screens
-              .filter(({ screen }) => screen !== 'admin')
+              .filter(({ allowed }) => allowed)
               .map(({ screen, allowed }) => {
               const key = screen as ScreenKey
               const Icon = SCREEN_META[key].icon

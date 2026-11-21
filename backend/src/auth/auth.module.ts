@@ -9,6 +9,6 @@ import { TokenVerifier } from './token-verifier.service.js';
 @Module({
   controllers: [AuthController],
   providers: [TokenVerifier, OtpService, { provide: APP_GUARD, useClass: AuthGuard }],
-  exports: [TokenVerifier],
+  exports: [TokenVerifier, OtpService],
 })
 export class AuthModule {}

@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Side, User, UserRole } from '../generated/prisma/client.js';
 import { AuditService } from '../audit/audit.service.js';
 import type { AuthUser } from '../auth/current-user.js';
+import { OtpService } from '../auth/otp.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import type { ScheduleResultDto, ScheduleSessionDto } from '../sessions/sessions.dto.js';
+import { SessionsService } from '../sessions/sessions.service.js';
 
 export interface AdminUser {
   id: string;
@@ -43,7 +46,40 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly otp: OtpService,
+    private readonly sessions: SessionsService,
   ) {}
+
+  /** All cases (matters) with their sessions, for the admin dashboard. */
+  async listCases() {
+    const matters = await this.prisma.matter.findMany({
+      orderBy: { openedAt: 'desc' },
+      include: {
+        sessions: {
+          orderBy: { dayNo: 'asc' },
+          include: { _count: { select: { participants: true } } },
+        },
+      },
+    });
+    return matters.map((m) => ({
+      id: m.id,
+      caption: m.caption,
+      docketNo: m.docketNo,
+      forum: m.forum,
+      sessions: m.sessions.map((s) => ({
+        id: s.id,
+        dayNo: s.dayNo,
+        startsAt: s.startsAt.toISOString(),
+        recordState: s.recordState,
+        participants: s._count.participants,
+      })),
+    }));
+  }
+
+  /** Create a case (matter + session + participants), reusing the scheduling flow. */
+  createCase(input: ScheduleSessionDto, actor: AuthUser): Promise<ScheduleResultDto> {
+    return this.sessions.schedule(input, actor);
+  }
 
   async list(): Promise<AdminUser[]> {
     const users = await this.prisma.user.findMany({ orderBy: [{ role: 'asc' }, { name: 'asc' }] });
@@ -68,6 +104,8 @@ export class AdminService {
       actorId: actor.id,
       data: { email: user.email, role: user.role, side: user.side },
     });
+    // Welcome email (best-effort; don't fail creation if mail is down).
+    this.otp.sendWelcome(user.email, user.name, user.role).catch(() => undefined);
     return toDto(user);
   }
 

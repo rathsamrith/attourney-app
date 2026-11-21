@@ -10,7 +10,7 @@ ENV VITE_OIDC_AUTHORITY=$VITE_OIDC_AUTHORITY
 ENV VITE_OIDC_CLIENT_ID=$VITE_OIDC_CLIENT_ID
 # Install, then build, entirely inside the image (nothing is taken from the host).
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --no-audit --no-fund --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000 --fetch-timeout=600000
 COPY . .
 RUN npm run build
 

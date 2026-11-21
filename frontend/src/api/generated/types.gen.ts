@@ -107,46 +107,20 @@ export type UpdateUserDto = {
     active?: boolean;
 };
 
-export type SessionSummaryDto = {
+export type AdminCaseSessionDto = {
     id: string;
-    matterId: string;
-    caption: string;
-    docketNo: string;
-    forum: 'deposition' | 'arbitration' | 'regulatory';
     dayNo: number;
     startsAt: string;
-    recordState: 'off' | 'open' | 'recess' | 'closed';
-    mySessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
+    recordState: string;
+    participants: number;
 };
 
-export type ParticipantDto = {
+export type AdminCaseDto = {
     id: string;
-    userId: string;
-    name: string;
-    role: 'adj' | 'counsel' | 'officer' | 'witness';
-    side: 'P' | 'D' | 'T';
-    sessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
-    verification: 'pending' | 'verified' | 'failed';
-    presence: 'lobby' | 'present' | 'sidebar' | 'caucus' | 'absent';
-    sworn: boolean;
-    /**
-     * Computed by the server from presence and record events (R2).
-     */
-    swornSeconds: number;
-};
-
-export type SessionDetailDto = {
-    id: string;
-    matterId: string;
     caption: string;
     docketNo: string;
-    forum: 'deposition' | 'arbitration' | 'regulatory';
-    dayNo: number;
-    startsAt: string;
-    recordState: 'off' | 'open' | 'recess' | 'closed';
-    mySessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
-    myParticipantId: string;
-    participants: Array<ParticipantDto>;
+    forum: string;
+    sessions: Array<AdminCaseSessionDto>;
 };
 
 export type NewMatterDto = {
@@ -202,6 +176,48 @@ export type ScheduleResultDto = {
     docketNo: string;
     matterCreated: boolean;
     sessions: Array<ScheduledSessionDto>;
+};
+
+export type SessionSummaryDto = {
+    id: string;
+    matterId: string;
+    caption: string;
+    docketNo: string;
+    forum: 'deposition' | 'arbitration' | 'regulatory';
+    dayNo: number;
+    startsAt: string;
+    recordState: 'off' | 'open' | 'recess' | 'closed';
+    mySessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
+};
+
+export type ParticipantDto = {
+    id: string;
+    userId: string;
+    name: string;
+    role: 'adj' | 'counsel' | 'officer' | 'witness';
+    side: 'P' | 'D' | 'T';
+    sessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
+    verification: 'pending' | 'verified' | 'failed';
+    presence: 'lobby' | 'present' | 'sidebar' | 'caucus' | 'absent';
+    sworn: boolean;
+    /**
+     * Computed by the server from presence and record events (R2).
+     */
+    swornSeconds: number;
+};
+
+export type SessionDetailDto = {
+    id: string;
+    matterId: string;
+    caption: string;
+    docketNo: string;
+    forum: 'deposition' | 'arbitration' | 'regulatory';
+    dayNo: number;
+    startsAt: string;
+    recordState: 'off' | 'open' | 'recess' | 'closed';
+    mySessionRole: 'presiding' | 'panelist' | 'counsel' | 'witness' | 'officer' | 'reporter';
+    myParticipantId: string;
+    participants: Array<ParticipantDto>;
 };
 
 export type RescheduleSessionDto = {
@@ -697,6 +713,32 @@ export type AdminUpdateResponses = {
 };
 
 export type AdminUpdateResponse = AdminUpdateResponses[keyof AdminUpdateResponses];
+
+export type AdminListCasesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/cases';
+};
+
+export type AdminListCasesResponses = {
+    200: Array<AdminCaseDto>;
+};
+
+export type AdminListCasesResponse = AdminListCasesResponses[keyof AdminListCasesResponses];
+
+export type AdminCreateCaseData = {
+    body: ScheduleSessionDto;
+    path?: never;
+    query?: never;
+    url: '/api/admin/cases';
+};
+
+export type AdminCreateCaseResponses = {
+    201: ScheduleResultDto;
+};
+
+export type AdminCreateCaseResponse = AdminCreateCaseResponses[keyof AdminCreateCaseResponses];
 
 export type SessionsListData = {
     body?: never;

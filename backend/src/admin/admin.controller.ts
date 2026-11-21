@@ -3,6 +3,7 @@ import { ApiConflictResponse, ApiCreatedResponse, ApiOkResponse, ApiProperty, Ap
 import { IsBoolean, IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
 import { CurrentUser, type AuthUser } from '../auth/current-user.js';
 import { Roles } from '../auth/decorators.js';
+import { ScheduleResultDto, ScheduleSessionDto } from '../sessions/sessions.dto.js';
 import { AdminService } from './admin.service.js';
 
 const ROLES = ['adj', 'counsel', 'officer', 'witness', 'admin'] as const;
@@ -33,7 +34,23 @@ class UpdateUserDto {
   @IsOptional() @IsBoolean() active?: boolean;
 }
 
-/** Admin dashboard API: user and role management (record officer only). */
+class AdminCaseSessionDto {
+  @ApiProperty() id: string;
+  @ApiProperty() dayNo: number;
+  @ApiProperty() startsAt: string;
+  @ApiProperty() recordState: string;
+  @ApiProperty() participants: number;
+}
+
+class AdminCaseDto {
+  @ApiProperty() id: string;
+  @ApiProperty() caption: string;
+  @ApiProperty() docketNo: string;
+  @ApiProperty() forum: string;
+  @ApiProperty({ type: [AdminCaseSessionDto] }) sessions: AdminCaseSessionDto[];
+}
+
+/** Admin dashboard API: user/role management and case creation (admin only). */
 @Controller('admin')
 @Roles('admin')
 export class AdminController {
@@ -57,5 +74,18 @@ export class AdminController {
   @ApiOkResponse({ type: AdminUserDto })
   update(@Param('id', ParseUUIDPipe) id: string, @Body() body: UpdateUserDto, @CurrentUser() user: AuthUser) {
     return this.admin.update(id, body, user);
+  }
+
+  @Get('cases')
+  @ApiOkResponse({ type: [AdminCaseDto] })
+  listCases() {
+    return this.admin.listCases();
+  }
+
+  @Post('cases')
+  @HttpCode(201)
+  @ApiCreatedResponse({ type: ScheduleResultDto })
+  createCase(@Body() body: ScheduleSessionDto, @CurrentUser() user: AuthUser) {
+    return this.admin.createCase(body, user);
   }
 }
