@@ -21,6 +21,7 @@ enum UserRole {
   counsel
   officer
   witness
+  admin
 
   @@map("user_role")
 }
@@ -162,6 +163,7 @@ model User {
   role          UserRole
   side          Side
   authMethod    AuthMethod @map("auth_method")
+  passwordHash  String?    @map("password_hash")
   mfaEnrolled   Boolean    @default(false) @map("mfa_enrolled")
   createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz
   deactivatedAt DateTime?  @map("deactivated_at") @db.Timestamptz

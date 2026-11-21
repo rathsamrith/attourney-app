@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes, useParams } from 'react-router'
 import { BlockedState } from '@/components/attest/blocked-state'
+import { AdminPage } from '@/features/admin/admin-page'
 import { AuditPage } from '@/features/audit/audit-page'
 import { CaucusPage } from '@/features/caucus/caucus-page'
 import { CheckinPage } from '@/features/checkin/checkin-page'
@@ -9,6 +10,7 @@ import { DocketPage } from '@/features/docket/docket-page'
 import { ExhibitsPage } from '@/features/exhibits/exhibits-page'
 import { HearingPage } from '@/features/hearing/hearing-page'
 import { SealingPage } from '@/features/sealing/sealing-page'
+import { AdminShell } from './admin-shell'
 import { CurrentSessionProvider, useCurrentUser } from './context'
 import { AppLayout, PageHeader } from './layout'
 import type { ScreenKey } from './screens'
@@ -22,6 +24,7 @@ const PAGES: Record<ScreenKey, React.ComponentType> = {
   sealing: SealingPage,
   docket: DocketPage,
   audit: AuditPage,
+  admin: AdminPage,
 }
 
 function ScreenRoute() {
@@ -45,6 +48,9 @@ function ScreenRoute() {
 }
 
 export function AppRoutes() {
+  const me = useCurrentUser()
+  // Administrators get a dedicated, hearing-free shell.
+  if (me.role === 'admin') return <AdminShell />
   return (
     <CurrentSessionProvider>
       <Routes>

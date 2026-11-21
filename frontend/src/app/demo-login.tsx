@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { describeError } from '@/api/client'
-import { authRequestOtp, authVerifyOtp, type DemoUserDto } from '@/api/generated'
+import { authAdminLogin, authRequestOtp, authVerifyOtp, type DemoUserDto } from '@/api/generated'
 import { LanguageSwitcher } from '@/components/attest/language-switcher'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,22 @@ export function DemoLogin({
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string>()
-  const twoCol = showCredentials && demoUsers.length > 0
+  const [adminMode, setAdminMode] = useState(false)
+  const [password, setPassword] = useState('')
+  const twoCol = showCredentials && demoUsers.length > 0 && !adminMode
+
+  const adminSignIn = async () => {
+    setError(undefined)
+    setBusy(true)
+    try {
+      const res = await authAdminLogin({ body: { email, password } })
+      if (res.data?.token) onToken(res.data.token)
+    } catch (e) {
+      setError(describeError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const send = async (to: string) => {
     setError(undefined)
@@ -59,6 +74,55 @@ export function DemoLogin({
     }
   }
 
+  if (adminMode) {
+    return (
+      <main className="grid min-h-svh place-items-center bg-muted/40 p-4">
+        <div className="absolute top-3 right-3">
+          <LanguageSwitcher />
+        </div>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{t('common.appName')}</p>
+            <CardTitle className="text-xl">{t('auth.adminTitle')}</CardTitle>
+            <CardDescription>{t('auth.adminDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Input
+              type="email"
+              autoComplete="username"
+              placeholder="admin@attest.local"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && email && password && void adminSignIn()}
+            />
+            <Button className="w-full" disabled={busy || !email || !password} onClick={() => void adminSignIn()}>
+              {t('auth.signIn')}
+            </Button>
+            <Button
+              variant="link"
+              size="sm"
+              className="px-0"
+              onClick={() => {
+                setAdminMode(false)
+                setError(undefined)
+              }}
+            >
+              {t('auth.backToCode')}
+            </Button>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </CardContent>
+        </Card>
+      </main>
+    )
+  }
+
   return (
     <main className="grid min-h-svh place-items-center bg-muted/40 p-4">
       <div className="absolute top-3 right-3">
@@ -87,6 +151,18 @@ export function DemoLogin({
                 <Button className="w-full" disabled={busy || !email} onClick={() => void send(email)}>
                   {t('auth.sendCode')}
                 </Button>
+                <div className="text-center">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      setAdminMode(true)
+                      setError(undefined)
+                    }}
+                  >
+                    {t('auth.adminSignIn')}
+                  </Button>
+                </div>
               </>
             ) : (
               <>

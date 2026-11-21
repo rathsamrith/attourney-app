@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  adminCreate,
+  adminList,
+  adminUpdate,
   auditList,
   authAuthConfig,
   authMe,
@@ -52,6 +55,8 @@ import {
 import type {
   AddTranscriptLineDto,
   CastBallotDto,
+  CreateUserDto,
+  UpdateUserDto,
   FileErratumDto,
   IdentityAttemptDto,
   RaiseObjectionDto,
@@ -77,6 +82,28 @@ const T = { throwOnError: true } as const
 
 export function useMe(enabled = true) {
   return useQuery({ queryKey: keys.me, queryFn: async () => (await authMe(T)).data, enabled, retry: false })
+}
+
+// ---------- admin (user & role management) ----------
+
+export function useAdminUsers() {
+  return useQuery({ queryKey: ['admin', 'users'] as const, queryFn: async () => (await adminList(T)).data })
+}
+
+export function useCreateUser() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: CreateUserDto) => adminCreate({ body, ...T }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  })
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { id: string; body: UpdateUserDto }) => adminUpdate({ path: { id: v.id }, body: v.body, ...T }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  })
 }
 
 /** Whether the demo OTP sign-in is on, and the demo accounts to show. Fetched once. */
