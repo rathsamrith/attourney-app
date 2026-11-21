@@ -166,6 +166,37 @@
         ]
       }
     },
+    "/api/auth/admin/login": {
+      "post": {
+        "operationId": "authAdminLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpTokenDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/me": {
       "get": {
         "operationId": "authMe",
@@ -212,6 +243,102 @@
         },
         "tags": [
           "Auth"
+        ]
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "operationId": "adminList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Admin"
+        ]
+      },
+      "post": {
+        "operationId": "adminCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A user with that email already exists."
+          }
+        },
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/api/admin/users/{id}": {
+      "patch": {
+        "operationId": "adminUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Admin"
         ]
       }
     },
@@ -1822,6 +1949,21 @@
           "token"
         ]
       },
+      "AdminLoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
       "ScreenAccessDto": {
         "type": "object",
         "properties": {
@@ -1835,7 +1977,8 @@
               "deliberation",
               "sealing",
               "docket",
-              "audit"
+              "audit",
+              "admin"
             ]
           },
           "allowed": {
@@ -1869,7 +2012,8 @@
               "adj",
               "counsel",
               "officer",
-              "witness"
+              "witness",
+              "admin"
             ]
           },
           "side": {
@@ -1895,6 +2039,118 @@
           "side",
           "screens"
         ]
+      },
+      "AdminUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "adj",
+              "counsel",
+              "officer",
+              "witness",
+              "admin"
+            ]
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "side",
+          "active",
+          "createdAt"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "adj",
+              "counsel",
+              "officer",
+              "witness",
+              "admin"
+            ]
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "role",
+          "side"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "adj",
+              "counsel",
+              "officer",
+              "witness",
+              "admin"
+            ]
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "P",
+              "D",
+              "T"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "false deactivates the account, true reactivates it."
+          }
+        }
       },
       "SessionSummaryDto": {
         "type": "object",

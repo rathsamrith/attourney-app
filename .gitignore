@@ -4,6 +4,7 @@ dist/
 coverage/
 
 # Local configuration and secrets (each app keeps a committed .env.example)
+.env
 backend/.env
 *.local
 

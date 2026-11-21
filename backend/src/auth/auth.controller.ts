@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
 import { ApiNoContentResponse, ApiOkResponse, ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsEmail, IsString, Length, MinLength } from 'class-validator';
 import { AuditService } from '../audit/audit.service.js';
 import { CurrentUser, type AuthUser } from './current-user.js';
 import { Public } from './decorators.js';
@@ -38,6 +38,11 @@ class OtpVerifyDto {
   @ApiProperty({ description: 'The 6-digit code from the email.' }) @IsString() @Length(6, 6) code: string;
 }
 
+class AdminLoginDto {
+  @ApiProperty() @IsEmail() email: string;
+  @ApiProperty() @IsString() @MinLength(1) password: string;
+}
+
 class OtpTokenDto {
   @ApiProperty() token: string;
 }
@@ -46,7 +51,7 @@ class MeDto {
   @ApiProperty() id: string;
   @ApiProperty() email: string;
   @ApiProperty() name: string;
-  @ApiProperty({ enum: ['adj', 'counsel', 'officer', 'witness'] }) role: AuthUser['role'];
+  @ApiProperty({ enum: ['adj', 'counsel', 'officer', 'witness', 'admin'] }) role: AuthUser['role'];
   @ApiProperty({ enum: ['P', 'D', 'T'] }) side: AuthUser['side'];
   @ApiProperty({ type: [ScreenAccessDto] }) screens: ScreenAccessDto[];
 }
@@ -81,6 +86,14 @@ export class AuthController {
   @ApiOkResponse({ type: OtpTokenDto })
   verifyOtp(@Body() body: OtpVerifyDto): Promise<OtpTokenDto> {
     return this.otp.verifyOtp(body.email, body.code);
+  }
+
+  /** Password sign-in for administrators (bypasses OTP). */
+  @Public()
+  @Post('auth/admin/login')
+  @ApiOkResponse({ type: OtpTokenDto })
+  adminLogin(@Body() body: AdminLoginDto): Promise<OtpTokenDto> {
+    return this.otp.adminLogin(body.email, body.password);
   }
 
   @Get('me')

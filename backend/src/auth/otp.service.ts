@@ -1,9 +1,11 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomInt } from 'node:crypto';
-import { connect } from 'node:net';
 import { SignJWT } from 'jose';
+import nodemailer, { type Transporter } from 'nodemailer';
+import type { User } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { hashPassword, verifyPassword } from './password.js';
 import { DEMO_ISSUER } from './token-verifier.service.js';
 
 interface Pending {
@@ -20,16 +22,18 @@ export interface DemoUser {
 }
 
 /**
- * Demo-only sign-in: a one-time code is emailed (to MailHog in dev) instead of a
- * password, and a short-lived app JWT is issued on success. Enabled by DEMO_AUTH;
- * production uses the Keycloak OIDC path in TokenVerifier instead.
+ * One-time-code sign-in: a 6-digit code is emailed over SMTP (MailHog in dev, or any
+ * real provider via SMTP_* env) instead of a password, and a short-lived app JWT is
+ * issued on success. Active when AUTH_MODE=otp; AUTH_MODE=oidc uses Keycloak instead.
  */
 @Injectable()
-export class OtpService {
+export class OtpService implements OnModuleInit {
   private readonly log = new Logger('OtpService');
   private readonly pending = new Map<string, Pending>();
   private readonly ttlMs = 5 * 60_000;
   private readonly maxAttempts = 5;
+  private readonly adminEmail?: string;
+  private readonly adminPassword?: string;
 
   /** True when sign-in uses an emailed one-time code (the default) rather than OIDC. */
   readonly otpEnabled: boolean;
@@ -37,8 +41,7 @@ export class OtpService {
   readonly showCredentials: boolean;
   private readonly secret: Uint8Array;
   private readonly audience: string;
-  private readonly smtpHost: string;
-  private readonly smtpPort: number;
+  private readonly mailer: Transporter;
   private readonly mailFrom: string;
 
   constructor(
@@ -50,9 +53,66 @@ export class OtpService {
     this.showCredentials = showEnv === undefined ? this.otpEnabled : String(showEnv) === 'true';
     this.secret = new TextEncoder().encode(config.get<string>('OTP_JWT_SECRET') ?? 'attest-demo-otp-secret-change-me');
     this.audience = config.getOrThrow<string>('OIDC_AUDIENCE');
-    this.smtpHost = config.get<string>('SMTP_HOST') ?? 'localhost';
-    this.smtpPort = Number(config.get('SMTP_PORT') ?? 1025);
     this.mailFrom = config.get<string>('MAIL_FROM') ?? 'Attest <no-reply@attest.local>';
+
+    // SMTP transport. With no SMTP_USER it talks plainly to MailHog in dev; set
+    // SMTP_HOST/PORT/SECURE/USER/PASS for a real provider (587 STARTTLS or 465 TLS).
+    const user = config.get<string>('SMTP_USER') || undefined;
+    this.mailer = nodemailer.createTransport({
+      host: config.get<string>('SMTP_HOST') ?? 'localhost',
+      port: Number(config.get('SMTP_PORT') ?? 1025),
+      secure: String(config.get('SMTP_SECURE') ?? 'false') === 'true',
+      auth: user ? { user, pass: config.get<string>('SMTP_PASS') } : undefined,
+    });
+
+    this.adminEmail = config.get<string>('ADMIN_EMAIL') || undefined;
+    this.adminPassword = config.get<string>('ADMIN_PASSWORD') || undefined;
+  }
+
+  /** Bootstrap a password-based admin account from env, so there is always one admin. */
+  async onModuleInit(): Promise<void> {
+    if (!this.adminEmail || !this.adminPassword) return;
+    const email = this.adminEmail.toLowerCase();
+    const passwordHash = hashPassword(this.adminPassword);
+    try {
+      await this.prisma.user.upsert({
+        where: { email },
+        update: { role: 'admin', passwordHash, deactivatedAt: null },
+        create: {
+          email,
+          name: 'Administrator',
+          role: 'admin',
+          side: 'T',
+          authMethod: 'password_mfa',
+          mfaEnrolled: true,
+          passwordHash,
+        },
+      });
+      this.log.log(`Admin account ready: ${email}`);
+    } catch (e) {
+      this.log.error(`Could not bootstrap admin account: ${(e as Error).message}`);
+    }
+  }
+
+  /** Sign a short-lived app JWT the guard accepts (shared by OTP and admin sign-in). */
+  private issueToken(user: User): Promise<string> {
+    return new SignJWT({ email: user.email })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer(DEMO_ISSUER)
+      .setAudience(this.audience)
+      .setSubject(user.id)
+      .setIssuedAt()
+      .setExpirationTime('8h')
+      .sign(this.secret);
+  }
+
+  /** Password sign-in for admins only (bypasses OTP). */
+  async adminLogin(email: string, password: string): Promise<{ token: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    if (!user || user.deactivatedAt || user.role !== 'admin' || !verifyPassword(password, user.passwordHash)) {
+      throw new UnauthorizedException('Incorrect email or password.');
+    }
+    return { token: await this.issueToken(user) };
   }
 
   /** The seeded accounts, shown as "role → credentials" on the sign-in screen (test helper). */
@@ -97,44 +157,22 @@ export class OtpService {
     const user = await this.prisma.user.findUnique({ where: { email: key } });
     if (!user || user.deactivatedAt) throw new UnauthorizedException('This account has no access to Attest.');
 
-    const token = await new SignJWT({ email: user.email })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuer(DEMO_ISSUER)
-      .setAudience(this.audience)
-      .setSubject(user.id)
-      .setIssuedAt()
-      .setExpirationTime('8h')
-      .sign(this.secret);
-    return { token };
+    return { token: await this.issueToken(user) };
   }
 
-  private sendMail(to: string, name: string, code: string): Promise<void> {
-    const boundary = `attest_${Math.random().toString(36).slice(2)}`;
-    const text =
-      `Hello ${name},\r\n\r\n` +
-      `Your one-time sign-in code is ${code}.\r\n` +
-      `It expires in 5 minutes.\r\n\r\n` +
-      `If you did not request this, you can ignore this email.\r\n\r\n` +
-      `Attest - Remote hearing platform\r\n`;
-    const message = [
-      `From: ${this.mailFrom}`,
-      `To: ${to}`,
-      `Subject: Your Attest sign-in code: ${code}`,
-      'MIME-Version: 1.0',
-      `Content-Type: multipart/alternative; boundary="${boundary}"`,
-      '',
-      `--${boundary}`,
-      'Content-Type: text/plain; charset=utf-8',
-      '',
-      text,
-      `--${boundary}`,
-      'Content-Type: text/html; charset=utf-8',
-      '',
-      this.htmlEmail(name, code),
-      `--${boundary}--`,
-      '',
-    ].join('\r\n');
-    return this.smtp(to, message);
+  private async sendMail(to: string, name: string, code: string): Promise<void> {
+    await this.mailer.sendMail({
+      from: this.mailFrom,
+      to,
+      subject: `Your Attest sign-in code: ${code}`,
+      text:
+        `Hello ${name},\n\n` +
+        `Your one-time sign-in code is ${code}.\n` +
+        `It expires in 5 minutes.\n\n` +
+        `If you did not request this, you can ignore this email.\n\n` +
+        `Attest - Remote hearing platform\n`,
+      html: this.htmlEmail(name, code),
+    });
   }
 
   /** Branded, email-client-safe HTML (table layout, inline styles). */
@@ -168,35 +206,5 @@ export class OtpService {
 </table>
 </body>
 </html>`;
-  }
-
-  /** Minimal SMTP (no auth, no TLS) — enough for MailHog. */
-  private smtp(to: string, message: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const steps = [
-        'EHLO attest',
-        'MAIL FROM:<no-reply@attest.local>',
-        `RCPT TO:<${to}>`,
-        'DATA',
-        // Dot-stuffing: a line that is just "." would otherwise end the message early.
-        `${message.replace(/\r\n\./g, '\r\n..')}\r\n.`,
-        'QUIT',
-      ];
-      let i = 0;
-      const sock = connect(this.smtpPort, this.smtpHost);
-      sock.setEncoding('utf8');
-      sock.setTimeout(5000, () => {
-        sock.destroy();
-        reject(new Error('SMTP timeout'));
-      });
-      sock.on('error', reject);
-      sock.on('data', () => {
-        if (i < steps.length) sock.write(steps[i++] + '\r\n');
-        else {
-          sock.end();
-          resolve();
-        }
-      });
-    });
   }
 }

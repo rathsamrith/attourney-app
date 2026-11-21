@@ -5,6 +5,7 @@ import {
   ScanFaceIcon,
   ScrollTextIcon,
   ShieldCheckIcon,
+  UserCogIcon,
   UsersRoundIcon,
   VoteIcon,
   type LucideIcon,
@@ -23,4 +24,5 @@ export const SCREEN_META: Record<ScreenKey, { icon: LucideIcon }> = {
   sealing: { icon: ShieldCheckIcon },
   docket: { icon: CalendarDaysIcon },
   audit: { icon: ScrollTextIcon },
+  admin: { icon: UserCogIcon },
 }

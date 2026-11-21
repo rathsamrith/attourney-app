@@ -15,6 +15,7 @@ export const SCREENS = [
   'sealing',
   'docket',
   'audit',
+  'admin',
 ] as const;
 export type Screen = (typeof SCREENS)[number];
 
@@ -44,6 +45,10 @@ const RULES: Record<Screen, { roles: UserRole[]; blockedReason: string }> = {
     blockedReason: 'The docket is kept by the record officer.',
   },
   audit: { roles: ALL, blockedReason: '' },
+  admin: {
+    roles: ['admin'],
+    blockedReason: 'The admin dashboard is limited to administrators.',
+  },
 };
 
 export interface ScreenAccess {

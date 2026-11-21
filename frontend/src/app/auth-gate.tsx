@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { MeProvider } from './context'
 import { DemoLogin } from './demo-login'
 
-const DEMO_TOKEN_KEY = 'attest.demoToken'
+export const DEMO_TOKEN_KEY = 'attest.demoToken'
 
 function readDemoToken(): string | undefined {
   try {

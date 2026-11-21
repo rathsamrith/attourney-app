@@ -100,9 +100,17 @@ services:
       # Show the seeded test accounts on the sign-in screen (set false to hide them).
       SHOW_TEST_CREDENTIALS: "true"
       OTP_JWT_SECRET: "attest-demo-otp-secret-change-me-0000"
-      SMTP_HOST: "mailhog"
-      SMTP_PORT: "1025"
-      MAIL_FROM: "Attest <no-reply@attest.local>"
+      # Password-based admin, bootstrapped on startup. Change the password for real use.
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@attest.local}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-AttestAdmin!2026}"
+      # Defaults hit MailHog. Point at a real provider by setting these in the shell or a
+      # root .env (e.g. SMTP_HOST=smtp.sendgrid.net SMTP_PORT=587 SMTP_USER=... SMTP_PASS=...).
+      SMTP_HOST: "${SMTP_HOST:-mailhog}"
+      SMTP_PORT: "${SMTP_PORT:-1025}"
+      SMTP_SECURE: "${SMTP_SECURE:-false}"
+      SMTP_USER: "${SMTP_USER:-}"
+      SMTP_PASS: "${SMTP_PASS:-}"
+      MAIL_FROM: "${MAIL_FROM:-Attest <no-reply@attest.local>}"
       # The browser connects to LiveKit directly, so this stays host-facing.
       LIVEKIT_URL: "ws://localhost:7880"
       LIVEKIT_API_KEY: "devkey"

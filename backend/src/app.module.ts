@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { AdminModule } from './admin/admin.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { CheckinModule } from './checkin/checkin.module.js';
@@ -35,6 +36,7 @@ import { SessionsModule } from './sessions/sessions.module.js';
     ProvidersModule,
     AuditModule,
     AuthModule,
+    AdminModule,
     SessionsModule,
     CheckinModule,
     ProceedingModule,

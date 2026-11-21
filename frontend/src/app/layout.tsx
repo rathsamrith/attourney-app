@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router'
 import { useAuth } from 'react-oidc-context'
 import { authSignedOut } from '@/api/generated'
+import { useAuthConfig } from '@/api/queries'
 import { useSessionEvents } from '@/api/realtime'
 import { LanguageSwitcher } from '@/components/attest/language-switcher'
 import { NotificationsMenu } from '@/components/attest/notifications-menu'
@@ -11,13 +12,30 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from './app-sidebar'
+import { DEMO_TOKEN_KEY } from './auth-gate'
 import { useCurrentSession } from './context'
 
 export function AppLayout() {
   const auth = useAuth()
   const { t } = useTranslation()
   const { current } = useCurrentSession()
+  const config = useAuthConfig()
   useSessionEvents(current?.id)
+
+  // Sign out of whichever flow is active: clear the OTP app token, or end the OIDC session.
+  const signOut = async () => {
+    await authSignedOut().catch(() => undefined) // Story "Sign in": sign-out is audited.
+    if (config.data?.otp) {
+      try {
+        localStorage.removeItem(DEMO_TOKEN_KEY)
+      } catch {
+        /* ignore */
+      }
+      window.location.assign('/')
+    } else {
+      await auth.signoutRedirect()
+    }
+  }
 
   return (
     <SidebarProvider>
@@ -43,11 +61,7 @@ export function AppLayout() {
             variant="ghost"
             size="icon"
             aria-label={t('common.signOut')}
-            onClick={async () => {
-              // Story "Sign in": sign-out appears in the audit trail.
-              await authSignedOut().catch(() => undefined)
-              await auth.signoutRedirect()
-            }}
+            onClick={signOut}
           >
             <LogOutIcon />
           </Button>

@@ -60,8 +60,13 @@ export type OtpTokenDto = {
     token: string;
 };
 
+export type AdminLoginDto = {
+    email: string;
+    password: string;
+};
+
 export type ScreenAccessDto = {
-    screen: 'checkin' | 'hearing' | 'exhibits' | 'caucus' | 'deliberation' | 'sealing' | 'docket' | 'audit';
+    screen: 'checkin' | 'hearing' | 'exhibits' | 'caucus' | 'deliberation' | 'sealing' | 'docket' | 'audit' | 'admin';
     allowed: boolean;
     reason: string;
 };
@@ -70,9 +75,36 @@ export type MeDto = {
     id: string;
     email: string;
     name: string;
-    role: 'adj' | 'counsel' | 'officer' | 'witness';
+    role: 'adj' | 'counsel' | 'officer' | 'witness' | 'admin';
     side: 'P' | 'D' | 'T';
     screens: Array<ScreenAccessDto>;
+};
+
+export type AdminUserDto = {
+    id: string;
+    name: string;
+    email: string;
+    role: 'adj' | 'counsel' | 'officer' | 'witness' | 'admin';
+    side: 'P' | 'D' | 'T';
+    active: boolean;
+    createdAt: string;
+};
+
+export type CreateUserDto = {
+    name: string;
+    email: string;
+    role: 'adj' | 'counsel' | 'officer' | 'witness' | 'admin';
+    side: 'P' | 'D' | 'T';
+};
+
+export type UpdateUserDto = {
+    name?: string;
+    role?: 'adj' | 'counsel' | 'officer' | 'witness' | 'admin';
+    side?: 'P' | 'D' | 'T';
+    /**
+     * false deactivates the account, true reactivates it.
+     */
+    active?: boolean;
 };
 
 export type SessionSummaryDto = {
@@ -566,6 +598,19 @@ export type AuthVerifyOtpResponses = {
 
 export type AuthVerifyOtpResponse = AuthVerifyOtpResponses[keyof AuthVerifyOtpResponses];
 
+export type AuthAdminLoginData = {
+    body: AdminLoginDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/admin/login';
+};
+
+export type AuthAdminLoginResponses = {
+    200: OtpTokenDto;
+};
+
+export type AuthAdminLoginResponse = AuthAdminLoginResponses[keyof AuthAdminLoginResponses];
+
 export type AuthMeData = {
     body?: never;
     path?: never;
@@ -604,6 +649,54 @@ export type AuthSignedOutResponses = {
 };
 
 export type AuthSignedOutResponse = AuthSignedOutResponses[keyof AuthSignedOutResponses];
+
+export type AdminListData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/users';
+};
+
+export type AdminListResponses = {
+    200: Array<AdminUserDto>;
+};
+
+export type AdminListResponse = AdminListResponses[keyof AdminListResponses];
+
+export type AdminCreateData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/admin/users';
+};
+
+export type AdminCreateErrors = {
+    /**
+     * A user with that email already exists.
+     */
+    409: unknown;
+};
+
+export type AdminCreateResponses = {
+    201: AdminUserDto;
+};
+
+export type AdminCreateResponse = AdminCreateResponses[keyof AdminCreateResponses];
+
+export type AdminUpdateData = {
+    body: UpdateUserDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/admin/users/{id}';
+};
+
+export type AdminUpdateResponses = {
+    200: AdminUserDto;
+};
+
+export type AdminUpdateResponse = AdminUpdateResponses[keyof AdminUpdateResponses];
 
 export type SessionsListData = {
     body?: never;
